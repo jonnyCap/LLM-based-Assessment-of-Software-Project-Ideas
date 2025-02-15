@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
   <div>
     <a href="https://vite.dev" target="_blank">
@@ -13,6 +9,21 @@ import HelloWorld from './components/HelloWorld.vue'
   </div>
   <HelloWorld msg="Vite + Vue" />
 </template>
+
+<script setup lang="ts">
+import HelloWorld from "./components/HelloWorld.vue";
+import { onMounted } from "vue";
+import axios from "axios";
+
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/hello-world");
+    console.log(response.data);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+});
+</script>
 
 <style scoped>
 .logo {

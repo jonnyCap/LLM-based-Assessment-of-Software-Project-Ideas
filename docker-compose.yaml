@@ -17,7 +17,7 @@ services:
       interval: 20s
       timeout: 5s
       retries: 30
-      start_period: 240s
+      start_period: 120s
 
   backend:
     build: ./backend
@@ -34,7 +34,7 @@ services:
     build: ./frontend
     container_name: frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
 
