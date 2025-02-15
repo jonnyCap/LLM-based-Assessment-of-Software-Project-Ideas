@@ -6,8 +6,10 @@ package-lock.json
 
 # Vue.js build output
 dist/
+frontend/dist/
 .DS_Store
 .vscode/
+frontend/.vscode/
 .env*
 
 # Vite (if using Vite for Vue)
