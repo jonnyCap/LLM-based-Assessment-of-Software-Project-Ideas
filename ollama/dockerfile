@@ -1,0 +1,13 @@
+# Start from the official Ollama image
+FROM ollama/ollama
+
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl
+
+# Use the custom entrypoint -> download models
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+

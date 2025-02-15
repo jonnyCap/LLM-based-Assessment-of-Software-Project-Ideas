@@ -7,7 +7,7 @@ router = APIRouter()
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:8000")
 
 # If you want to extend this list, add them either in docker compose or use the pull endpoint dyncamically
-MODELS = ["mistral", "llama3"]
+MODELS = ["mistral"]
 
 @router.get("/models")
 def get_available_models():

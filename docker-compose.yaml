@@ -1,20 +1,23 @@
-version: "3.8"
-
 services:
   ollama:
-    image: ollama/ollama
+    build: ./ollama
     container_name: ollama
     ports:
       - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
-    restart: always
-    entrypoint:
-      [
-        "/bin/sh",
-        "-c",
-        "ollama pull mistral && ollama pull llama3 && ollama serve",
-      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "curl -s http://localhost:11434/api/tags | grep -q 'mistral'",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 30
+      start_period: 240s
 
   backend:
     build: ./backend
@@ -24,8 +27,8 @@ services:
     environment:
       - OLLAMA_API_URL=http://ollama:11434
     depends_on:
-      - ollama
-    restart: always
+      ollama:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -34,7 +37,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    restart: always
 
 volumes:
   ollama-data:
