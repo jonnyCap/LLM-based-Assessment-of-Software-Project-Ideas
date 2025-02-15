@@ -1,0 +1,45 @@
+# Node.js dependencies (Vue.js)
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# Vue.js build output
+dist/
+.DS_Store
+.vscode/
+.env*
+
+# Vite (if using Vite for Vue)
+.vite/
+
+# FastAPI dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+*.env
+
+# FastAPI logs and database
+instance/
+*.db
+*.sqlite
+
+# IDE and editor files
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Miscellaneous
+*.log
+coverage/
+pytest_cache/
+
+# Docker-related
+.dockerignore
+docker-compose.override.yml
