@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from utility.DatabaseConnector import DatabaseConnector, get_db
 import os
 import requests
 
@@ -14,7 +15,7 @@ def get_available_models():
     return MODELS
 
 @router.post("/generate")
-def generate_response(prompt: str):
+def generate_response(prompt: str, db: DatabaseConnector = get_db()):
     try:
         response = requests.post(f"{OLLAMA_API_URL}/api/generate", json={"model": "mistral", "prompt": prompt})
         
