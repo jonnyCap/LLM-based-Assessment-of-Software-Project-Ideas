@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from utility.DatabaseConnector import DatabaseConnector, get_db
 import os
 import requests
@@ -15,12 +15,14 @@ def get_available_models():
     return MODELS
 
 @router.post("/generate")
-def generate_response(prompt: str, db: DatabaseConnector = get_db()):
+async def generate_response(prompt: str, db: DatabaseConnector = Depends(get_db)):
     try:
         response = requests.post(f"{OLLAMA_API_URL}/api/generate", json={"model": "mistral", "prompt": prompt})
         
         # TODO: Store request
+        db.fetch("SELECT * from requests", prompt)
         # TODO: Store response
+        db.execute("INSERT INTO responses (prompt, response) VALUES ($1, $2)", prompt, response.json()["response"])
         
         return response.json()
     except Exception as e:

@@ -1,15 +1,29 @@
+from fastapi import Request
 from typing import Optional
-from fastapi import FastAPI
 import asyncpg
 import os
+import urllib.parse
 
-DB_USER = os.getenv("DATABASE_USER")
-DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DB_NAME = os.getenv("DATABASE_NAME")
-DB_PORT = os.getenv("DATABASE_PORT")
-DB_HOST = os.getenv("DATABASE_HOST")
+# Load environment variables safely
+DB_USER = os.getenv("DB_USER", "user")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
+DB_NAME = os.getenv("DB_NAME", "app-db")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_HOST = os.getenv("DB_HOST", "db")
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Encode password to handle special characters safely
+DB_PASSWORD_ENCODED = urllib.parse.quote_plus(DB_PASSWORD)
+
+# Construct the DATABASE_URL safely
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD_ENCODED}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+print(f"Using database URL: {DATABASE_URL}")  # Debugging
+
+class DatabaseConnector:
+    def __init__(self, database_url: str):
+        self.database_url = database_url
+        self.pool: Optional[asyncpg.Pool] = None
+
 
 class DatabaseConnector:
     def __init__(self, database_url: str):
@@ -32,8 +46,7 @@ class DatabaseConnector:
             return await connection.execute(query, *args)
 
 
-# Create Single Instance of DatabaseConnector
-db_connector = DatabaseConnector(DATABASE_URL)
 
-async def get_db(app: FastAPI):
-    return db_connector
+
+async def get_db(request: Request) -> DatabaseConnector:
+    return request.app.state.db_connector

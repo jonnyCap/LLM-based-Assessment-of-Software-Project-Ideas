@@ -1,18 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from router.llm_router import router as llm_router
-from utility.DatabaseConnector import get_db
+from utility.DatabaseConnector import DatabaseConnector, DATABASE_URL
 from contextlib import asynccontextmanager
 
 
+db_connector = DatabaseConnector(DATABASE_URL)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    db_connector = await get_db(app)
+    app.state.db_connector = db_connector
     try:
-        await db_connector.connect()
-        yield db_connector
+        await app.state.db_connector.connect()
+        yield
     finally:
-        await db_connector.disconnect()
+        await app.state.db_connector.disconnect()
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -25,9 +28,3 @@ app.add_middleware(
 )
 
 app.include_router(llm_router, prefix="/api/llm", tags=["llm"])
-
-
-
-@app.get("/api/hello-world")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
