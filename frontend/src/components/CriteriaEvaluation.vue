@@ -12,8 +12,8 @@
   </v-card>
 </template>
 
-<script setup lang="ts">
-defineProps<{ criteria: Record<string, string> }>();
+<script setup>
+defineProps(["criteria"]);
 
-const formatKey = (key: string) => key.charAt(0).toUpperCase() + key.slice(1);
+const formatKey = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 </script>

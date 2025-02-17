@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pa-4">
+  <v-card class="pa-4" fluid>
     <v-list>
       <v-list-item v-for="group in groups" :key="group.name">
         <v-list-item-content>
@@ -10,6 +10,6 @@
   </v-card>
 </template>
 
-<script setup lang="ts">
+<script setup>
 defineProps(["groups"]);
 </script>
