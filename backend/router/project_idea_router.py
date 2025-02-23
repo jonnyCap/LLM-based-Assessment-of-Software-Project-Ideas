@@ -58,7 +58,7 @@ async def add_ideas(idea_request: AddIdeaRequest, db: DatabaseConnector = Depend
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/delete-ideas")
+@router.delete("/delete-idea")
 async def delete_idea(idea_request: DeleteIdeaRequest, db: DatabaseConnector = Depends(get_db)):
     try:
         query = "DELETE FROM project_descriptions WHERE id = $1"

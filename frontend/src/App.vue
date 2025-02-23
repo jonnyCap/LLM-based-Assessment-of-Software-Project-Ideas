@@ -6,7 +6,11 @@
         <IdeaInput @ideaSubmitted="handleIdea" />
       </div>
       <div class="group-list">
-        <GroupList :groups="groups" />
+        <GroupList
+          :groups="groups"
+          :handleItemClick="handleItemClick"
+          :deleteProjectIdea="deleteProjectIdea"
+        />
       </div>
     </div>
 
@@ -56,6 +60,31 @@ const handleIdea = async (idea) => {
     await axios.post("/api/project-idea/add-ideas", { ideas }); // Pass data directly
   } catch (error) {
     console.error("Failed to add idea:", error);
+  } finally {
+    // Fetch the updated list of ideas
+    const response = await axios.get("/api/project-idea/get-ideas");
+    groups.value = response.data;
+  }
+};
+
+const deleteProjectIdea = async (id) => {
+  try {
+    await axios.delete("/api/project-idea/delete-idea", { data: { id } });
+    groups.value = groups.value.filter((group) => group.id !== id); // Update UI
+  } catch (error) {
+    console.error("Failed to delete idea:", error);
+  } finally {
+    // Fetch the updated list of ideas
+    const response = await axios.get("/api/project-idea/get-ideas");
+    groups.value = response.data;
+  }
+};
+
+const handleItemClick = async (groupId) => {
+  try {
+    await axios.post("/api/project-idea/load-evaluations", { id: groupId });
+  } catch (error) {
+    console.error("Failed to delete idea:", error);
   } finally {
     // Fetch the updated list of ideas
     const response = await axios.get("/api/project-idea/get-ideas");
