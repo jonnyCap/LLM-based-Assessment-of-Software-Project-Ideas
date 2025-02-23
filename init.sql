@@ -1,5 +1,5 @@
 -- Create the project_description table
-CREATE TABLE IF NOT EXISTS project_description (
+CREATE TABLE IF NOT EXISTS project_descriptions (
     id SERIAL PRIMARY KEY,
     description TEXT NOT NULL
 );
