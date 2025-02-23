@@ -22,17 +22,14 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import IdeaInput from "./components/IdeaInput.vue";
 import GroupList from "./components/GroupList.vue";
 import AssessmentChart from "./components/AssessmentChart.vue";
 import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
+import axios from "axios";
 
-const groups = ref([
-  { name: "Group A1", ideas: [] },
-  { name: "Group A2", ideas: [] },
-]);
-
+const groups = ref([]);
 const criteria = ref({
   novelty: 4,
   feasibility: 3,
@@ -42,8 +39,28 @@ const criteria = ref({
   relevance: 3,
 });
 
-const handleIdea = (idea) => {
-  groups.value[0].ideas.push(idea);
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/project-idea/get-ideas");
+    groups.value = response.data;
+    console.log("Fetched groups:", groups.value);
+  } catch (error) {
+    console.error("Failed to fetch groups:", error);
+    groups.value = [];
+  }
+});
+
+const handleIdea = async (idea) => {
+  const ideas = [idea];
+  try {
+    await axios.post("/api/project-idea/add-ideas", { ideas }); // Pass data directly
+  } catch (error) {
+    console.error("Failed to add idea:", error);
+  } finally {
+    // Fetch the updated list of ideas
+    const response = await axios.get("/api/project-idea/get-ideas");
+    groups.value = response.data;
+  }
 };
 </script>
 
