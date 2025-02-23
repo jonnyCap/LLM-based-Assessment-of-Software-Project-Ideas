@@ -18,7 +18,14 @@
     <div class="right-side">
       <div class="assessment-header">LLM-based Assessment</div>
       <div class="assessment-content">
-        <AssessmentChart :criteria="criteria" class="chart-container" />
+        <template
+          v-if="tutor_evaluations.length === 0 && llm_evaluations.length === 0"
+        >
+          <div class="no-data-placeholder">No data available yet.</div>
+        </template>
+        <template v-else>
+          <AssessmentChart :criteria="criteria" class="chart-container" />
+        </template>
         <CriteriaEvaluation :criteria="criteria" class="criteria-container" />
       </div>
     </div>
@@ -34,6 +41,9 @@ import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
 import axios from "axios";
 
 const groups = ref([]);
+const tutor_evaluations = ref([]);
+const llm_evaluations = ref([]);
+
 const criteria = ref({
   novelty: 4,
   feasibility: 3,
@@ -80,15 +90,22 @@ const deleteProjectIdea = async (id) => {
   }
 };
 
-const handleItemClick = async (groupId) => {
+const handleItemClick = async (id) => {
   try {
-    await axios.post("/api/project-idea/load-evaluations", { id: groupId });
+    const response = await axios.get(`/api/project-idea/load-evaluations`, {
+      params: { id },
+    });
+
+    // Store the evaluations in the refs
+    tutor_evaluations.value = response.data.tutor_evaluations || [];
+    llm_evaluations.value = response.data.llm_evaluations || [];
+
+    console.log("Evaluation data stored:", {
+      tutor_evaluations: tutor_evaluations.value,
+      llm_evaluations: llm_evaluations.value,
+    });
   } catch (error) {
-    console.error("Failed to delete idea:", error);
-  } finally {
-    // Fetch the updated list of ideas
-    const response = await axios.get("/api/project-idea/get-ideas");
-    groups.value = response.data;
+    console.error("Failed to load evaluations:", error);
   }
 };
 </script>
@@ -156,5 +173,13 @@ const handleItemClick = async (groupId) => {
 /* Criteria List takes the remaining space */
 .criteria-container {
   flex: 1;
+}
+
+.no-data-placeholder {
+  width: 100%;
+  height: 350px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

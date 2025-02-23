@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 from utility.DatabaseConnector import DatabaseConnector, get_db
 from pydantic import BaseModel, Field
@@ -14,9 +14,6 @@ class AddIdeaRequest(BaseModel):
 
 class DeleteIdeaRequest(BaseModel):
     id: int = Field(..., description="The ID of the idea to be deleted")
-
-class LoadIdeaEvaluationRequest(BaseModel):
-    id: int = Field(..., description="The ID of the idea which evaluations are to be loaded")
 
 class Evaluation(BaseModel):
     id: int
@@ -69,13 +66,16 @@ async def delete_idea(idea_request: DeleteIdeaRequest, db: DatabaseConnector = D
 
 
 @router.get("/load-evaluations")
-async def load_evaluations(idea_request: LoadIdeaEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
+async def load_evaluations(
+    id: int = Query(..., description="The ID of the idea to load evaluations for"),
+    db: DatabaseConnector = Depends(get_db)
+):
     try:
         query_llm = "SELECT * FROM llm_evaluations WHERE project_id = $1"
         query_tutor = "SELECT * FROM tutor_evaluations WHERE project_id = $1"
         
-        llm_evaluations = await db.fetch(query_llm, idea_request.id)
-        tutor_evaluations = await db.fetch(query_tutor, idea_request.id)
+        llm_evaluations = await db.fetch(query_llm, id)
+        tutor_evaluations = await db.fetch(query_tutor, id)
         
         return EvaluationsResponse(
             llm_evaluations=[Evaluation(**dict(eval)) for eval in llm_evaluations],
