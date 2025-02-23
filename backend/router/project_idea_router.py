@@ -4,18 +4,20 @@ from utility.DatabaseConnector import DatabaseConnector, get_db
 from pydantic import BaseModel, Field
 from typing import List
 
-# Model for /add-ideas endpoint
+
+class IdeaResponse(BaseModel):
+    id: int
+    description: str
+
 class AddIdeaRequest(BaseModel):
     ideas: List[str]  # List of text inputs
 
-# Model for /delete-ideas endpoint
 class DeleteIdeaRequest(BaseModel):
     id: int = Field(..., description="The ID of the idea to be deleted")
 
 class LoadIdeaEvaluationRequest(BaseModel):
     id: int = Field(..., description="The ID of the idea which evaluations are to be loaded")
 
-# Model for evaluations (shared by both LLM and Tutor evaluations)
 class Evaluation(BaseModel):
     id: int
     project_id: int
@@ -35,34 +37,45 @@ class EvaluationsResponse(BaseModel):
 
 router = APIRouter()
 
-@router.post("/add-ideas")
-def add_ideas(idea_request: AddIdeaRequest, db: DatabaseConnector = Depends(get_db)):
+
+@router.get("/get-ideas")
+async def get_ideas(db: DatabaseConnector = Depends(get_db)):
     try:
-        query = "INSERT INTO project_description (description) VALUES (%s)"
+        query = "SELECT id, description FROM project_descriptions"
+        ideas = await db.fetch(query)
+        return [IdeaResponse(id=idea["id"], description=idea["description"]) for idea in ideas]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/add-ideas")
+async def add_ideas(idea_request: AddIdeaRequest, db: DatabaseConnector = Depends(get_db)):
+    try:
+        query = "INSERT INTO project_descriptions (description) VALUES ($1)"  # Use $1 instead of %s
         for idea in idea_request.ideas:
-            db.execute(query, idea)
+            await db.execute(query, idea)  # Pass parameters correctly
         return JSONResponse(content={"message": "Ideas added successfully"}, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.delete("/delete-ideas")
-def delete_idea(idea_request: DeleteIdeaRequest, db: DatabaseConnector = Depends(get_db)):
+async def delete_idea(idea_request: DeleteIdeaRequest, db: DatabaseConnector = Depends(get_db)):
     try:
-        query = "DELETE FROM project_description WHERE id = %s"
-        db.execute(query, idea_request.id)
+        query = "DELETE FROM project_descriptions WHERE id = $1"
+        await db.execute(query, idea_request.id)
         return JSONResponse(content={"message": "Idea deleted successfully"}, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/load-evaluations")
-def load_evaluations(idea_request: LoadIdeaEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
+async def load_evaluations(idea_request: LoadIdeaEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
     try:
-        query_llm = "SELECT * FROM llm_evaluations WHERE project_id = %s"
-        query_tutor = "SELECT * FROM tutor_evaluations WHERE project_id = %s"
+        query_llm = "SELECT * FROM llm_evaluations WHERE project_id = $1"
+        query_tutor = "SELECT * FROM tutor_evaluations WHERE project_id = $1"
         
-        llm_evaluations = db.fetch(query_llm, idea_request.id)
-        tutor_evaluations = db.fetch(query_tutor, idea_request.id)
+        llm_evaluations = await db.fetch(query_llm, idea_request.id)
+        tutor_evaluations = await db.fetch(query_tutor, idea_request.id)
         
         return EvaluationsResponse(
             llm_evaluations=[Evaluation(**dict(eval)) for eval in llm_evaluations],

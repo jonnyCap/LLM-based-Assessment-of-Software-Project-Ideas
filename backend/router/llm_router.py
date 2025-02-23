@@ -41,7 +41,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             f"\nProvide a structured JSON response with these fields."
         )        
 
-        response = requests.post(f"{OLLAMA_API_URL}/api/generate", json={"model": evaluation_request.model, "prompt": prompt})
+        response: dict = requests.post(f"{OLLAMA_API_URL}/api/generate", json={"model": evaluation_request.model, "prompt": prompt})
         response_data = response.json()
         
         await db.execute(
