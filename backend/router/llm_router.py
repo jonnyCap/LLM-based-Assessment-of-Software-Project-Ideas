@@ -19,9 +19,7 @@ async def generate_response(prompt: str, db: DatabaseConnector = Depends(get_db)
     try:
         response = requests.post(f"{OLLAMA_API_URL}/api/generate", json={"model": "mistral", "prompt": prompt})
         
-        # TODO: Store request
-        db.fetch("SELECT * from requests", prompt)
-        # TODO: Store response
+        # Store properly in llm_evaluations table
         db.execute("INSERT INTO responses (prompt, response) VALUES ($1, $2)", prompt, response.json()["response"])
         
         return response.json()
