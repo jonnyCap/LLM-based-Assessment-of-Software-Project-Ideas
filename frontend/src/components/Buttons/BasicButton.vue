@@ -18,6 +18,7 @@ defineEmits(["click"]);
   border-radius: 5px;
   font-size: 1rem;
   transition: background-color 0.3s;
+  margin: 0 10px;
 }
 
 .base-button:hover {

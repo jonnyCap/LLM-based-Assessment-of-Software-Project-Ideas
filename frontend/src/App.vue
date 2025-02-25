@@ -17,13 +17,16 @@
     <!-- Right Side -->
     <div class="right-side">
       <div class="assessment-header">
-        <h2>LLM-based Assessment</h2>
+        <h3>LLM-based Assessment</h3>
       </div>
-      <EvaluationPopUp
-        :title="'LLM Evaluation'"
-        :description="'Please provide your evaluation for the project idea.'"
-        @submitEvaluation="submitEvaluation"
-      />
+      <div class="evaluation-button-container">
+        <EvaluationPopUp
+          :title="'LLM Evaluation'"
+          :description="'Please provide your evaluation for the project idea.'"
+          @submitEvaluation="submitEvaluation"
+        />
+        <LLMEvaluationButton />
+      </div>
       <div class="assessment-content">
         <template
           v-if="tutor_evaluations.length === 0 && llm_evaluations.length === 0"
@@ -47,6 +50,7 @@ import AssessmentChart from "./components/AssessmentChart.vue";
 import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
 import EvaluationPopUp from "./components/EvaluationPopUp.vue";
 import axios from "axios";
+import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
 
 const groups = ref([]);
 const tutor_evaluations = ref([]);
@@ -201,5 +205,11 @@ const handleItemClick = async (id) => {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.evaluation-button-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
 }
 </style>
