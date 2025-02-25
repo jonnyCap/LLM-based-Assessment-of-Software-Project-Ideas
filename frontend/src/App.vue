@@ -16,7 +16,14 @@
 
     <!-- Right Side -->
     <div class="right-side">
-      <div class="assessment-header">LLM-based Assessment</div>
+      <div class="assessment-header">
+        <h2>LLM-based Assessment</h2>
+      </div>
+      <EvaluationPopUp
+        :title="'LLM Evaluation'"
+        :description="'Please provide your evaluation for the project idea.'"
+        @submitEvaluation="submitEvaluation"
+      />
       <div class="assessment-content">
         <template
           v-if="tutor_evaluations.length === 0 && llm_evaluations.length === 0"
@@ -38,6 +45,7 @@ import IdeaInput from "./components/IdeaInput.vue";
 import GroupList from "./components/GroupList.vue";
 import AssessmentChart from "./components/AssessmentChart.vue";
 import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
+import EvaluationPopUp from "./components/EvaluationPopUp.vue";
 import axios from "axios";
 
 const groups = ref([]);
@@ -63,6 +71,18 @@ onMounted(async () => {
     groups.value = [];
   }
 });
+
+const submitEvaluation = async () => {
+  try {
+    await axios.post("/api/project-idea/submit-evaluation", {
+      tutor_evaluations: tutor_evaluations.value,
+      llm_evaluations: llm_evaluations.value,
+    });
+    console.log("Evaluation submitted successfully.");
+  } catch (error) {
+    console.error("Failed to submit evaluation:", error);
+  }
+};
 
 const handleIdea = async (idea) => {
   const ideas = [idea];
