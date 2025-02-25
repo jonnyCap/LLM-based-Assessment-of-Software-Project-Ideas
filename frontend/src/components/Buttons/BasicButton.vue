@@ -1,10 +1,17 @@
 <template>
-  <button class="base-button" @click="$emit('click')">
+  <button class="base-button" @click="$emit('click')" :disabled="disabled">
     <slot></slot>
   </button>
 </template>
 
 <script setup>
+defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 defineEmits(["click"]);
 </script>
 
@@ -23,5 +30,10 @@ defineEmits(["click"]);
 
 .base-button:hover {
   background-color: #0056b3;
+}
+
+.base-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>

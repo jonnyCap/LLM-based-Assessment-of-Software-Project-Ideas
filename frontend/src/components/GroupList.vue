@@ -4,7 +4,7 @@
       <v-list-item
         v-for="group in groups"
         :key="group.id"
-        @click="handleItemClick(group.id)"
+        @click="handleItemClick(group)"
         class="d-flex justify-space-between align-center"
       >
         <v-list-item-content>

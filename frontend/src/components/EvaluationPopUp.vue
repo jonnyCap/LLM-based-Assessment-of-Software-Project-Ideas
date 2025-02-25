@@ -1,6 +1,6 @@
 <template>
   <div>
-    <BasicButton @click="openPopup">Evaluate</BasicButton>
+    <BasicButton @click="openPopup" :disabled="disabled">Evaluate</BasicButton>
 
     <div v-if="isPopupOpen" class="popup-overlay">
       <div class="popup">
@@ -37,15 +37,19 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from "vue";
+import { ref, defineProps } from "vue";
 import BasicButton from "./Buttons/BasicButton.vue";
+import axios from "axios";
 
 const props = defineProps({
   title: String,
   description: String,
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  id: Number,
 });
-
-const emit = defineEmits(["submitEvaluation"]);
 
 const isPopupOpen = ref(false);
 const evaluation = ref({
@@ -66,9 +70,19 @@ const closePopup = () => {
   isPopupOpen.value = false;
 };
 
-const submitEvaluation = () => {
-  emit("submitEvaluation", { ...evaluation.value, feedback: feedback.value });
-  closePopup();
+const submitEvaluation = async () => {
+  try {
+    await axios.post("/api/project-idea/evaluate", {
+      project_id: props.id,
+      ...evaluation.value,
+      feedback: feedback.value,
+    });
+    console.log("Evaluation submitted successfully.");
+  } catch (error) {
+    console.error("Failed to submit evaluation:", error);
+  } finally {
+    closePopup();
+  }
 };
 </script>
 

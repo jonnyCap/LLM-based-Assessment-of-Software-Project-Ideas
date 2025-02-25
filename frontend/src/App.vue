@@ -21,11 +21,15 @@
       </div>
       <div class="evaluation-button-container">
         <EvaluationPopUp
+          :disabled="!selectedGroup || selectedGroup === undefined"
           :title="'LLM Evaluation'"
-          :description="'Please provide your evaluation for the project idea.'"
-          @submitEvaluation="submitEvaluation"
+          :description="'Group Description: ' + selectedGroup?.description"
+          :id="selectedGroup?.id"
         />
-        <LLMEvaluationButton />
+        <LLMEvaluationButton
+          :id="selectedGroup?.id"
+          :disabled="!selectedGroup || selectedGroup === undefined"
+        />
       </div>
       <div class="assessment-content">
         <template
@@ -56,6 +60,8 @@ const groups = ref([]);
 const tutor_evaluations = ref([]);
 const llm_evaluations = ref([]);
 
+const selectedGroup = ref(null);
+
 const criteria = ref({
   novelty: 4,
   feasibility: 3,
@@ -75,18 +81,6 @@ onMounted(async () => {
     groups.value = [];
   }
 });
-
-const submitEvaluation = async () => {
-  try {
-    await axios.post("/api/project-idea/submit-evaluation", {
-      tutor_evaluations: tutor_evaluations.value,
-      llm_evaluations: llm_evaluations.value,
-    });
-    console.log("Evaluation submitted successfully.");
-  } catch (error) {
-    console.error("Failed to submit evaluation:", error);
-  }
-};
 
 const handleIdea = async (idea) => {
   const ideas = [idea];
@@ -114,8 +108,18 @@ const deleteProjectIdea = async (id) => {
   }
 };
 
-const handleItemClick = async (id) => {
+const handleItemClick = async (group) => {
   try {
+    if (!group) {
+      console.error("Invalid group has been passed!");
+      return;
+    }
+
+    // Set selected id
+    selectedGroup.value = group;
+    id = selectedGroup.id;
+
+    // Fetch evaluations for the selected project idea
     const response = await axios.get(`/api/project-idea/load-evaluations`, {
       params: { id },
     });

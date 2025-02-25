@@ -1,6 +1,8 @@
 <template>
   <div class="evaluation-container">
-    <BasicButton @click="performEvaluation">LLM Evaluation</BasicButton>
+    <BasicButton @click="performEvaluation" :disabled="disabled"
+      >LLM Evaluation</BasicButton
+    >
     <span v-if="status === 'success'" class="success">✔️</span>
     <span v-if="status === 'error'" class="error">❌</span>
   </div>
@@ -13,9 +15,17 @@ import BasicButton from "./Buttons/BasicButton.vue";
 
 const status = ref(null);
 
+defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  id: Number,
+});
+
 const performEvaluation = async () => {
   try {
-    const response = await axios.post("/api/llm-evaluate");
+    const response = await axios.post("/api/llm/evaluate", { id });
     if (response.status === 200) {
       status.value = "success";
     } else {
