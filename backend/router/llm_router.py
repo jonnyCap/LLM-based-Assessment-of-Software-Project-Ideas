@@ -6,7 +6,7 @@ import os
 import requests
 
 class EvaluationRequest(BaseModel):
-    id: str
+    id: int
     model: str
 
 router = APIRouter()
