@@ -15,7 +15,7 @@ class TutorEvaluationRequest(BaseModel):
 
 router = APIRouter()
 
-@router.post("/evaluate-tutor")
+@router.post("/evaluate")
 async def evaluate_tutor(evaluation_request: TutorEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
     try:
         await db.execute(

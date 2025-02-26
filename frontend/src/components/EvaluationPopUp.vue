@@ -8,9 +8,12 @@
         <p>{{ description }}</p>
 
         <div v-for="(value, key) in evaluation" :key="key" class="input-group">
-          <label :for="key">{{
-            key.charAt(0).toUpperCase() + key.slice(1)
-          }}</label>
+          <label :for="key">
+            <label :for="key">
+              {{ formatLabel(key) }}
+            </label>
+          </label>
+
           <input
             type="number"
             :id="key"
@@ -54,11 +57,11 @@ const props = defineProps({
 const isPopupOpen = ref(false);
 const evaluation = ref({
   novelty: 1,
-  feasibility: 1,
-  impact: 1,
-  scalability: 1,
-  originality: 1,
-  relevance: 1,
+  usefulness: 1,
+  market_potential: 1,
+  applicability: 1,
+  complexity: 1,
+  completeness: 1,
 });
 const feedback = ref("");
 
@@ -83,6 +86,13 @@ const submitEvaluation = async () => {
   } finally {
     closePopup();
   }
+};
+
+const formatLabel = (key) => {
+  return key
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 </script>
 
