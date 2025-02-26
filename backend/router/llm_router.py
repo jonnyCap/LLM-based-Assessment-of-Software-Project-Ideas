@@ -4,6 +4,13 @@ from utility.DatabaseConnector import DatabaseConnector, get_db
 from pydantic import BaseModel
 import os
 import requests
+import logging
+import json
+
+MIN_RATING = 1
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class EvaluationRequest(BaseModel):
     id: int
@@ -43,25 +50,45 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         prompt = (
             f"Evaluate the following project idea based on the criteria: \n"
             f"Novelty (1-10), Usefulness (1-10), Market Potential (1-10), \n"
-            f"Applicability (1-10), Complexity (1-10), Completeness (1-10), Feedback text.\n"
+            f"Applicability (1-10), Complexity (1-10), Completeness (1-10), Feedback.\n"
             f"\nProject Idea: {description}\n"
-            f"\nProvide a structured JSON response with these fields."
+            f"\nProvide a structured JSON response with exactly these fields. All fields must be lowercase."
         )        
 
         response = requests.post(
             f"{OLLAMA_API_URL}/api/generate",
-            json={"model": evaluation_request.model, "prompt": prompt}
+            json={"model": evaluation_request.model, "prompt": prompt, "stream": False}
         )
+
+        logger.debug(f"Raw Ollama response: {response.text}")
         response_data = response.json()
+
+        try:
+            structured_data = json.loads(response_data["response"])  # Convert it into a proper dictionary
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON from response field: {e}")
+            raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response")
         
+        def safe_int(value, default):
+            try:
+                return int(value)  # Convert string to integer
+            except (ValueError, TypeError):
+                return default  # Use default value if conversion fails
+
+        novelty = safe_int(structured_data.get("novelty"), MIN_RATING)
+        usefulness = safe_int(structured_data.get("usefulness"), MIN_RATING)
+        market_potential = safe_int(structured_data.get("market_potential"), MIN_RATING)
+        applicability = safe_int(structured_data.get("applicability"), MIN_RATING)
+        complexity = safe_int(structured_data.get("complexity"), MIN_RATING)
+        completeness = safe_int(structured_data.get("completeness"), MIN_RATING)
+        feedback = structured_data.get("feedback", "No feedback")
+
+        # Now, all values are properly typed
         await db.execute(
             "INSERT INTO llm_evaluations (project_id, model, novelty, usefulness, market_potential, applicability, complexity, completeness, feedback) "
             "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             project_id, evaluation_request.model,
-            response_data.get("novelty", 5), response_data.get("usefulness", 5),
-            response_data.get("market_potential", 5), response_data.get("applicability", 5),
-            response_data.get("complexity", 5), response_data.get("completeness", 5),
-            response_data.get("feedback", "No feedback")
+            novelty, usefulness, market_potential, applicability, complexity, completeness, feedback
         )
         
         return JSONResponse(content={"message": "Evaluation added successfully"}, status_code=200)

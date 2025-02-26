@@ -5,7 +5,10 @@ from router.tutor_router import router as tutor_router
 from router.project_idea_router import router as project_idea_router
 from utility.DatabaseConnector import DatabaseConnector, DATABASE_URL
 from contextlib import asynccontextmanager
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 db_connector = DatabaseConnector(DATABASE_URL)
 
