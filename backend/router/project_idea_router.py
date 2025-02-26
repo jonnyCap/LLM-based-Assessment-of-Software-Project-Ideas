@@ -3,6 +3,10 @@ from fastapi.responses import JSONResponse
 from utility.DatabaseConnector import DatabaseConnector, get_db
 from pydantic import BaseModel, Field
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class IdeaResponse(BaseModel):
@@ -76,6 +80,8 @@ async def load_evaluations(
         
         llm_evaluations = await db.fetch(query_llm, id)
         tutor_evaluations = await db.fetch(query_tutor, id)
+
+        logger.debug(f"LLM Results: {llm_evaluations}")
         
         return EvaluationsResponse(
             llm_evaluations=[Evaluation(**dict(eval)) for eval in llm_evaluations],

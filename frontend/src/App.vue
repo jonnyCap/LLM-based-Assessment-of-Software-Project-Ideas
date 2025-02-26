@@ -117,7 +117,8 @@ const handleItemClick = async (group) => {
 
     // Set selected id
     selectedGroup.value = group;
-    id = selectedGroup.id;
+    console.log("Selected group:", selectedGroup.value);
+    const id = selectedGroup.value.id;
 
     // Fetch evaluations for the selected project idea
     const response = await axios.get(`/api/project-idea/load-evaluations`, {

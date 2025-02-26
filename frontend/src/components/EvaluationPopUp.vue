@@ -72,7 +72,7 @@ const closePopup = () => {
 
 const submitEvaluation = async () => {
   try {
-    await axios.post("/api/project-idea/evaluate", {
+    await axios.post("/api/tutor/evaluate", {
       project_id: props.id,
       ...evaluation.value,
       feedback: feedback.value,
