@@ -19,19 +19,16 @@
       <div class="assessment-header">
         <h3>LLM-based Assessment</h3>
       </div>
-      <div class="evaluation-button-container">
-        <EvaluationPopUp
-          :disabled="!selectedGroup || selectedGroup === undefined"
-          :title="'LLM Evaluation'"
-          :description="'Group Description: ' + selectedGroup?.description"
-          :id="selectedGroup?.id"
-        />
-        <LLMEvaluationButton
-          :id="selectedGroup?.id"
-          :disabled="!selectedGroup || selectedGroup === undefined"
-        />
-      </div>
+
       <div class="assessment-content">
+        <div class="chart-container">
+          <div>
+            <h5>Tutor Evaluations</h5>
+          </div>
+          <div>
+            <h5>LLM Evaluations</h5>
+          </div>
+        </div>
         <template
           v-if="tutor_evaluations.length === 0 && llm_evaluations.length === 0"
         >
@@ -50,6 +47,18 @@
           </div>
         </template>
 
+        <div class="popup-container">
+          <EvaluationPopUp
+            :disabled="!selectedGroup || selectedGroup === undefined"
+            :title="'LLM Evaluation'"
+            :description="'Group Description: ' + selectedGroup?.description"
+            :id="selectedGroup?.id"
+          />
+          <LLMEvaluationButton
+            :id="selectedGroup?.id"
+            :disabled="!selectedGroup || selectedGroup === undefined"
+          />
+        </div>
         <div class="chart-container">
           <CriteriaEvaluation
             :criteria="tutor_evaluations"
@@ -165,6 +174,7 @@ const handleItemClick = async (group) => {
 /* Container to split the screen */
 .container {
   display: flex;
+  max-height: 100vh;
   height: 100vh;
 }
 
@@ -198,12 +208,12 @@ const handleItemClick = async (group) => {
 
 /* Title Section */
 .assessment-header {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: bold;
   text-align: center;
-  padding: 10px;
   border-bottom: 2px solid #ddd;
-  margin-bottom: 20px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 /* Chart and Criteria Section */
@@ -219,6 +229,14 @@ const handleItemClick = async (group) => {
   display: flex;
   justify-content: space-around;
   align-items: center;
+}
+
+.popup-container {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 20px;
 }
 
 /* Criteria List takes the remaining space */
