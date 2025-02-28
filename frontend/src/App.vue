@@ -49,10 +49,18 @@
             />
           </div>
         </template>
-        <CriteriaEvaluation
-          :criteria="criteria[0]"
-          class="criteria-container"
-        />
+
+        <div class="chart-container">
+          <CriteriaEvaluation
+            :criteria="tutor_evaluations"
+            class="criteria-container"
+          />
+
+          <CriteriaEvaluation
+            :criteria="llm_evaluations"
+            class="criteria-container"
+          />
+        </div>
       </div>
     </div>
   </div>
