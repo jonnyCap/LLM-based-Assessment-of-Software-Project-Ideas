@@ -28,31 +28,48 @@ ChartJS.register(
 );
 
 const props = defineProps({
-  criteria: Object,
+  criteria: Array, // Expect an array of objects instead of a single object
 });
 
-// Compute chart data dynamically from `criteria` prop
+// Define a set of colors to be used for different datasets
+const colors = [
+  "rgba(54, 162, 235, 1)",
+  "rgba(255, 99, 132, 1)",
+  "rgba(255, 206, 86, 1)",
+  "rgba(75, 192, 192, 1)",
+  "rgba(153, 102, 255, 1)",
+  "rgba(255, 159, 64, 1)",
+];
+
+// Compute chart data dynamically for multiple datasets
 const chartData = computed(() => ({
   labels: [
+    "Applicability",
+    "Completeness",
+    "Complexity",
+    "Market Potential",
     "Novelty",
-    "Feasibility",
-    "Impact",
-    "Scalability",
-    "Originality",
-    "Relevance",
+    "Usefulness",
   ],
-  datasets: [
-    {
-      label: "Assessment",
-      data: Object.values(props.criteria),
-      borderColor: "rgba(54, 162, 235, 1)",
-      backgroundColor: "rgba(54, 162, 235, 0.2)",
-      pointBackgroundColor: "rgba(54, 162, 235, 1)",
+  datasets: props.criteria.map((criteriaSet, index) => {
+    const color = colors[index % colors.length]; // Cycle through colors
+
+    // Filter out non-numeric fields
+    const filteredData = Object.keys(criteriaSet)
+      .filter((key) => !["project_id", "id", "feedback"].includes(key)) // Remove unwanted fields
+      .map((key) => criteriaSet[key]); // Extract values
+
+    return {
+      label: `Assessment ${index + 1}`, // Label each dataset
+      data: filteredData,
+      borderColor: color,
+      backgroundColor: color.replace("1)", "0.2)"), // Adjust transparency
+      pointBackgroundColor: color,
       pointBorderColor: "#fff",
       pointHoverBackgroundColor: "#fff",
-      pointHoverBorderColor: "rgba(54, 162, 235, 1)",
-    },
-  ],
+      pointHoverBorderColor: color,
+    };
+  }),
 }));
 
 // Chart options for styling

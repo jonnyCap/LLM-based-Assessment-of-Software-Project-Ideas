@@ -38,9 +38,21 @@
           <div class="no-data-placeholder">No data available yet.</div>
         </template>
         <template v-else>
-          <AssessmentChart :criteria="criteria" class="chart-container" />
+          <div class="chart-container">
+            <AssessmentChart
+              :criteria="tutor_evaluations"
+              class="chart-container"
+            />
+            <AssessmentChart
+              :criteria="llm_evaluations"
+              class="chart-container"
+            />
+          </div>
         </template>
-        <CriteriaEvaluation :criteria="criteria" class="criteria-container" />
+        <CriteriaEvaluation
+          :criteria="criteria[0]"
+          class="criteria-container"
+        />
       </div>
     </div>
   </div>
@@ -62,14 +74,16 @@ const llm_evaluations = ref([]);
 
 const selectedGroup = ref(null);
 
-const criteria = ref({
-  novelty: 4,
-  feasibility: 3,
-  impact: 5,
-  scalability: 2,
-  originality: 4,
-  relevance: 3,
-});
+const criteria = ref([
+  {
+    applicability: 3,
+    completeness: 4,
+    complexity: 2,
+    market_potential: 5,
+    novelty: 3,
+    usefulness: 4,
+  },
+]);
 
 onMounted(async () => {
   try {
@@ -195,7 +209,7 @@ const handleItemClick = async (group) => {
 .chart-container {
   flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
 }
 
