@@ -53,10 +53,12 @@
             :title="'LLM Evaluation'"
             :description="'Group Description: ' + selectedGroup?.description"
             :id="selectedGroup?.id"
+            @evaluationSuccess="() => handleItemClick(selectedGroup)"
           />
           <LLMEvaluationButton
             :id="selectedGroup?.id"
             :disabled="!selectedGroup || selectedGroup === undefined"
+            @evaluationSuccess="() => handleItemClick(selectedGroup)"
           />
         </div>
         <div class="chart-container">
@@ -88,19 +90,7 @@ import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
 const groups = ref([]);
 const tutor_evaluations = ref([]);
 const llm_evaluations = ref([]);
-
 const selectedGroup = ref(null);
-
-const criteria = ref([
-  {
-    applicability: 3,
-    completeness: 4,
-    complexity: 2,
-    market_potential: 5,
-    novelty: 3,
-    usefulness: 4,
-  },
-]);
 
 onMounted(async () => {
   try {

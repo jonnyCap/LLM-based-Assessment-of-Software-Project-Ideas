@@ -54,6 +54,8 @@ const props = defineProps({
   id: Number,
 });
 
+const emit = defineEmits(["evaluationSuccess"]);
+
 const isPopupOpen = ref(false);
 const evaluation = ref({
   novelty: 1,
@@ -75,11 +77,19 @@ const closePopup = () => {
 
 const submitEvaluation = async () => {
   try {
-    await axios.post("/api/tutor/evaluate", {
+    const response = await axios.post("/api/tutor/evaluate", {
       project_id: props.id,
       ...evaluation.value,
       feedback: feedback.value,
     });
+
+    if (response.status === 200) {
+      // Emit event to notify parent component
+      emit("evaluationSuccess");
+    } else {
+      console.error("Failed to submit evaluation:", response.data);
+    }
+
     console.log("Evaluation submitted successfully.");
   } catch (error) {
     console.error("Failed to submit evaluation:", error);

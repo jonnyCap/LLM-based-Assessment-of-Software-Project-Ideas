@@ -44,12 +44,12 @@ const colors = [
 // Compute chart data dynamically for multiple datasets
 const chartData = computed(() => ({
   labels: [
-    "Applicability",
-    "Completeness",
-    "Complexity",
-    "Market Potential",
     "Novelty",
     "Usefulness",
+    "Market Potential",
+    "Applicability",
+    "Complexity",
+    "Completeness",
   ],
   datasets: props.criteria.map((criteriaSet, index) => {
     const color = colors[index % colors.length]; // Cycle through colors

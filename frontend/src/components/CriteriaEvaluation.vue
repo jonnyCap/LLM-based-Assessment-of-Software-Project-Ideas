@@ -138,6 +138,6 @@ const formatKey = (key) =>
   min-height: 100px;
   height: 100px;
   max-height: 100px;
-  overflow-y: "auto";
+  overflow-y: auto;
 }
 </style>
