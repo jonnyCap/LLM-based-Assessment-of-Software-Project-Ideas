@@ -3,7 +3,7 @@
     <!-- Left Side -->
     <div class="left-side">
       <div class="idea-input">
-        <IdeaInput @ideaSubmitted="handleIdea" />
+        <IdeaInput @updateGroups="updateGroups" />
       </div>
       <div class="group-list">
         <GroupList
@@ -92,29 +92,21 @@ const tutor_evaluations = ref([]);
 const llm_evaluations = ref([]);
 const selectedGroup = ref(null);
 
+const updateGroups = async () => {
+  return axios.get("/api/project-idea/get-ideas").then((response) => {
+    groups.value = response.data;
+  });
+};
+
 onMounted(async () => {
   try {
-    const response = await axios.get("/api/project-idea/get-ideas");
-    groups.value = response.data;
+    await updateGroups();
     console.log("Fetched groups:", groups.value);
   } catch (error) {
     console.error("Failed to fetch groups:", error);
     groups.value = [];
   }
 });
-
-const handleIdea = async (idea) => {
-  const ideas = [idea];
-  try {
-    await axios.post("/api/project-idea/add-ideas", { ideas }); // Pass data directly
-  } catch (error) {
-    console.error("Failed to add idea:", error);
-  } finally {
-    // Fetch the updated list of ideas
-    const response = await axios.get("/api/project-idea/get-ideas");
-    groups.value = response.data;
-  }
-};
 
 const deleteProjectIdea = async (id) => {
   try {
