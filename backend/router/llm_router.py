@@ -6,6 +6,7 @@ import os
 import requests
 import logging
 import json
+import httpx
 
 MIN_RATING = 1
 
@@ -55,10 +56,12 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             f"\nProvide a structured JSON response with exactly these fields. All fields must be lowercase."
         )        
 
-        response = requests.post(
-            f"{OLLAMA_API_URL}/api/generate",
-            json={"model": evaluation_request.model, "prompt": prompt, "stream": False}
-        )
+        # Non-blocking HTTP request
+        async with httpx.AsyncClient(timeout=300) as client:
+            response = await client.post(
+                f"{OLLAMA_API_URL}/api/generate",
+                json={"model": evaluation_request.model, "prompt": prompt, "stream": False}
+            )
 
         logger.debug(f"Raw Ollama response: {response.text}")
         response_data = response.json()
@@ -83,7 +86,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         completeness = safe_int(structured_data.get("completeness"), MIN_RATING)
         feedback = structured_data.get("feedback", "No feedback")
 
-        # Now, all values are properly typed
+        # Asynchronously insert into database
         await db.execute(
             "INSERT INTO llm_evaluations (project_id, model, novelty, usefulness, market_potential, applicability, complexity, completeness, feedback) "
             "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
