@@ -5,7 +5,7 @@
     <div v-if="isPopupOpen" class="popup-overlay">
       <div class="popup">
         <h2>{{ title }}</h2>
-        <p>{{ description }}</p>
+        <p class="description-container">{{ description }}</p>
 
         <div v-for="(value, key) in evaluation" :key="key" class="input-group">
           <label :for="key">
@@ -135,6 +135,8 @@ const formatLabel = (key) => {
   border-radius: 10px;
   width: 400px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  max-height: 500px;
+  overflow: auto;
 }
 
 .input-group {
