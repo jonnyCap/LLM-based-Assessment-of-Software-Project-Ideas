@@ -11,7 +11,9 @@
         v-model="selectedEntry"
         :items="
           criteria.map((item, index) => ({
-            title: `Assessment ${index + 1}`,
+            title: item.model
+              ? `Assessment ${index + 1} (${item.model})`
+              : `Assessment ${index + 1}`,
             value: index,
           }))
         "
@@ -25,7 +27,7 @@
       <div class="criteria-grid">
         <!-- First three rows: Two columns each -->
         <template v-for="(pair, index) in gridRows" :key="index">
-          <div v-if="index < 3" class="row">
+          <div class="row">
             <div v-for="(value, key) in pair" :key="key" class="column">
               <strong>{{ formatKey(key) }}:</strong> {{ value }}
             </div>
@@ -61,7 +63,7 @@ const filteredCriteria = computed(() => {
   // Remove unwanted fields (except feedback)
   return Object.fromEntries(
     Object.entries(selected).filter(
-      ([key]) => !["id", "project_id"].includes(key)
+      ([key]) => !["id", "project_id", "model"].includes(key)
     )
   );
 });

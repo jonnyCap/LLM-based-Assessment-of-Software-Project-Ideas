@@ -30,9 +30,12 @@ class Evaluation(BaseModel):
     completeness: int = Field(..., ge=1, le=10)
     feedback: str
 
+class LLMEvaluation(Evaluation):
+    model: str = Field(..., description="The name of the LLM model used for evaluation")
+
 # Model for /load-evaluations response
 class EvaluationsResponse(BaseModel):
-    llm_evaluations: List[Evaluation]
+    llm_evaluations: List[LLMEvaluation]
     tutor_evaluations: List[Evaluation]
 
 
@@ -82,9 +85,9 @@ async def load_evaluations(
         tutor_evaluations = await db.fetch(query_tutor, id)
 
         logger.debug(f"LLM Results: {llm_evaluations}")
-        
+
         return EvaluationsResponse(
-            llm_evaluations=[Evaluation(**dict(eval)) for eval in llm_evaluations],
+            llm_evaluations=[LLMEvaluation(**dict(eval)) for eval in llm_evaluations],
             tutor_evaluations=[Evaluation(**dict(eval)) for eval in tutor_evaluations]
         )
     except HTTPException as e:
