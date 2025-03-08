@@ -20,59 +20,66 @@
         <h3>LLM-based Assessment</h3>
       </div>
 
-      <div class="assessment-content">
-        <div class="chart-container">
-          <div>
-            <h5>Tutor Evaluations</h5>
-          </div>
-          <div>
-            <h5>LLM Evaluations</h5>
-          </div>
-        </div>
-        <template
-          v-if="tutor_evaluations.length === 0 && llm_evaluations.length === 0"
-        >
-          <div class="no-data-placeholder">No data available yet.</div>
-        </template>
-        <template v-else>
+      <template v-if="selectedGroup">
+        <div class="assessment-content">
           <div class="chart-container">
-            <AssessmentChart
-              :criteria="tutor_evaluations"
-              class="chart-container"
+            <div>
+              <h5>Tutor Evaluations</h5>
+            </div>
+            <div>
+              <h5>LLM Evaluations</h5>
+            </div>
+          </div>
+          <template
+            v-if="
+              tutor_evaluations.length === 0 && llm_evaluations.length === 0
+            "
+          >
+            <div class="no-data-placeholder">No data available yet.</div>
+          </template>
+          <template v-else>
+            <div class="chart-container">
+              <AssessmentChart
+                :criteria="tutor_evaluations"
+                class="chart-container"
+              />
+              <AssessmentChart
+                :criteria="llm_evaluations"
+                class="chart-container"
+              />
+            </div>
+          </template>
+
+          <div class="popup-container">
+            <EvaluationPopUp
+              :disabled="!selectedGroup || selectedGroup === undefined"
+              :title="'LLM Evaluation'"
+              :description="'Group Description: ' + selectedGroup?.description"
+              :id="selectedGroup?.id"
+              @evaluationSuccess="() => handleItemClick(selectedGroup)"
             />
-            <AssessmentChart
-              :criteria="llm_evaluations"
-              class="chart-container"
+            <LLMEvaluationButton
+              :id="selectedGroup?.id"
+              :disabled="!selectedGroup || selectedGroup === undefined"
+              @evaluationSuccess="() => handleItemClick(selectedGroup)"
             />
           </div>
-        </template>
+          <div class="chart-container">
+            <CriteriaEvaluation
+              :criteria="tutor_evaluations"
+              class="criteria-container"
+            />
 
-        <div class="popup-container">
-          <EvaluationPopUp
-            :disabled="!selectedGroup || selectedGroup === undefined"
-            :title="'LLM Evaluation'"
-            :description="'Group Description: ' + selectedGroup?.description"
-            :id="selectedGroup?.id"
-            @evaluationSuccess="() => handleItemClick(selectedGroup)"
-          />
-          <LLMEvaluationButton
-            :id="selectedGroup?.id"
-            :disabled="!selectedGroup || selectedGroup === undefined"
-            @evaluationSuccess="() => handleItemClick(selectedGroup)"
-          />
+            <CriteriaEvaluation
+              :criteria="llm_evaluations"
+              class="criteria-container"
+            />
+          </div>
         </div>
-        <div class="chart-container">
-          <CriteriaEvaluation
-            :criteria="tutor_evaluations"
-            class="criteria-container"
-          />
-
-          <CriteriaEvaluation
-            :criteria="llm_evaluations"
-            class="criteria-container"
-          />
-        </div>
-      </div>
+      </template>
+      <template v-else>
+        <div class="no-data-placeholder">No group selected.</div>
+      </template>
     </div>
   </div>
 </template>
