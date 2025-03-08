@@ -22,6 +22,13 @@ services:
   backend:
     build: ./backend
     container_name: backend
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+        - action: rebuild
+          path: ./backend/requirements.txt
     ports:
       - "8000:8000"
     environment:
