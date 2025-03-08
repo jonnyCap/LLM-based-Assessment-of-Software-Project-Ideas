@@ -1,6 +1,6 @@
 -- Create ENUM type for predefined model names
 DO $$ BEGIN
-    CREATE TYPE model_enum AS ENUM ('mistral'); -- Extend this list if needed
+    CREATE TYPE model_enum AS ENUM ('mistral', 'deepseek-r1', 'mixtral', 'llama3', 'phi2', 'gemma2'); -- Extend this list if needed
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS llm_evaluations (
 CREATE TABLE IF NOT EXISTS tutor_evaluations (
     id SERIAL PRIMARY KEY,
     project_id INT NOT NULL,
+    username TEXT NOT NULL DEFAULT 'anonymous',
     novelty INT CHECK (novelty BETWEEN 1 AND 10),
     usefulness INT CHECK (usefulness BETWEEN 1 AND 10),
     market_potential INT CHECK (market_potential BETWEEN 1 AND 10),
