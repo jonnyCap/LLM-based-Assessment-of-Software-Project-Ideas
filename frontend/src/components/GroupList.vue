@@ -1,6 +1,6 @@
 <template>
   <v-card class="pa-4" fluid>
-    <v-list>
+    <v-list v-if="groups.length">
       <v-list-item
         v-for="group in groups"
         :key="group.id"
@@ -16,6 +16,9 @@
         </v-btn>
       </v-list-item>
     </v-list>
+    <v-alert v-else type="info" class="text-center">
+      No project ideas available.
+    </v-alert>
   </v-card>
 </template>
 
