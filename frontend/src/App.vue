@@ -40,7 +40,7 @@
           <template v-else>
             <div class="chart-container">
               <AssessmentChart
-                :criteria="tutor_evaluations"
+                :criteria="filtered_tutor_evaluations"
                 class="chart-container"
               />
               <AssessmentChart
@@ -61,6 +61,11 @@
                 :id="selectedGroup?.id"
                 @evaluationSuccess="() => handleItemClick(selectedGroup)"
               />
+              <MultiSelectDropdown
+                :options="available_tutor_names"
+                v-model:selectedItems="selected_tutor_names"
+                buttonLabel="Filter Tutors"
+              />
             </div>
             <div class="inner_button_container">
               <LLMEvaluationButton
@@ -68,16 +73,16 @@
                 :disabled="!selectedGroup || selectedGroup === undefined"
                 @evaluationSuccess="() => handleItemClick(selectedGroup)"
               />
-              <ModelFilterButton
-                :models="availableModels"
-                :selectedModels="selectedModels"
-                @selectModels="selectModels"
+              <MultiSelectDropdown
+                :options="availableModels"
+                v-model:selectedItems="selectedModels"
+                buttonLabel="Filter Models"
               />
             </div>
           </div>
           <div class="chart-container">
             <CriteriaEvaluation
-              :criteria="tutor_evaluations"
+              :criteria="filtered_tutor_evaluations"
               class="criteria-container"
             />
 
@@ -96,15 +101,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import IdeaInput from "./components/IdeaInput.vue";
 import GroupList from "./components/GroupList.vue";
 import AssessmentChart from "./components/AssessmentChart.vue";
 import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
 import EvaluationPopUp from "./components/EvaluationPopUp.vue";
-import axios from "axios";
 import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
-import ModelFilterButton from "./components/ModelFilterButton.vue";
+import MultiSelectDropdown from "./components/MutliSelectDropdown.vue";
+import axios from "axios";
 
 const groups = ref([]);
 const tutor_evaluations = ref([]);
@@ -113,6 +118,8 @@ const llm_evaluations = ref([]);
 const selectedGroup = ref(null);
 const availableModels = ref([]);
 const selectedModels = ref([]);
+
+const selected_tutor_names = ref([]);
 
 onMounted(async () => {
   try {
@@ -131,6 +138,30 @@ onMounted(async () => {
   }
 });
 
+const available_tutor_names = computed(() => {
+  return [
+    ...new Set(
+      tutor_evaluations.value.map((evaluation) => evaluation.username)
+    ),
+  ];
+});
+
+watch(available_tutor_names, (newValue, oldValue) => {
+  const added = newValue.filter((name) => !oldValue.includes(name));
+  const removed = oldValue.filter((name) => !newValue.includes(name));
+
+  // Add and remove these values from selected_tutor_names
+  selected_tutor_names.value = [
+    ...new Set([...selected_tutor_names.value, ...added]),
+  ].filter((name) => !removed.includes(name));
+});
+
+const filtered_tutor_evaluations = computed(() => {
+  return tutor_evaluations.value.filter((evaluation) => {
+    return selected_tutor_names.value.includes(evaluation.username);
+  });
+});
+
 const filtered_llm_evaluations = computed(() => {
   return llm_evaluations.value.filter((evaluation) => {
     return selectedModels.value.includes(evaluation.model);
@@ -141,11 +172,6 @@ const updateGroups = async () => {
   return axios.get("/api/project-idea/get-ideas").then((response) => {
     groups.value = response.data;
   });
-};
-
-const selectModels = (models) => {
-  console.log("Selected models:", models);
-  selectedModels.value = models;
 };
 
 const deleteProjectIdea = async (id) => {

@@ -1,20 +1,20 @@
 <template>
-  <div class="multi-model-container">
+  <div class="multi-select-container">
     <!-- Button to Open Dropdown -->
     <BasicButton @click="toggleDropdown" :disabled="disabled || isLoading">
       <span v-if="isLoading" class="loading-spinner"></span>
-      <span v-else> Filter Models </span>
+      <span v-else> {{ buttonLabel }} </span>
     </BasicButton>
 
     <!-- Dropdown for Multi-Selection -->
     <div v-if="dropdownOpen" class="dropdown-menu">
-      <label v-for="model in models" :key="model" class="dropdown-item">
+      <label v-for="option in options" :key="option" class="dropdown-item">
         <input
           type="checkbox"
-          :value="model"
-          v-model="selectedModelsComputed"
+          :value="option"
+          v-model="selectedItemsComputed"
         />
-        {{ model }}
+        {{ option }}
       </label>
     </div>
   </div>
@@ -32,22 +32,26 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  models: {
+  options: {
     type: Array,
     required: true,
   },
-  selectedModels: {
+  selectedItems: {
     type: Array,
     required: true,
+  },
+  buttonLabel: {
+    type: String,
+    default: "Filter",
   },
 });
 
-const emit = defineEmits(["selectModels"]);
+const emit = defineEmits(["update:selectedItems"]);
 
-const selectedModelsComputed = computed({
-  get: () => props.selectedModels,
+const selectedItemsComputed = computed({
+  get: () => props.selectedItems,
   set: (newValue) => {
-    emit("selectModels", newValue);
+    emit("update:selectedItems", newValue);
   },
 });
 
@@ -57,7 +61,7 @@ const toggleDropdown = () => {
 </script>
 
 <style scoped>
-.multi-model-container {
+.multi-select-container {
   position: relative;
   display: inline-block;
 }
