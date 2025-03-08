@@ -17,13 +17,13 @@ defineEmits(["click"]);
 
 <style scoped>
 .base-button {
-  padding: 10px 20px;
+  padding: 8px 12px;
   background-color: #007bff;
   color: white;
   border: none;
   cursor: pointer;
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: background-color 0.3s;
   margin: 0 10px;
 }

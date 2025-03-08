@@ -44,25 +44,36 @@
                 class="chart-container"
               />
               <AssessmentChart
-                :criteria="llm_evaluations"
+                :criteria="filtered_llm_evaluations"
                 class="chart-container"
               />
             </div>
           </template>
 
           <div class="popup-container">
-            <EvaluationPopUp
-              :disabled="!selectedGroup || selectedGroup === undefined"
-              :title="'LLM Evaluation'"
-              :description="'Group Description: ' + selectedGroup?.description"
-              :id="selectedGroup?.id"
-              @evaluationSuccess="() => handleItemClick(selectedGroup)"
-            />
-            <LLMEvaluationButton
-              :id="selectedGroup?.id"
-              :disabled="!selectedGroup || selectedGroup === undefined"
-              @evaluationSuccess="() => handleItemClick(selectedGroup)"
-            />
+            <div class="inner_button_container">
+              <EvaluationPopUp
+                :disabled="!selectedGroup || selectedGroup === undefined"
+                :title="'LLM Evaluation'"
+                :description="
+                  'Group Description: ' + selectedGroup?.description
+                "
+                :id="selectedGroup?.id"
+                @evaluationSuccess="() => handleItemClick(selectedGroup)"
+              />
+            </div>
+            <div class="inner_button_container">
+              <LLMEvaluationButton
+                :id="selectedGroup?.id"
+                :disabled="!selectedGroup || selectedGroup === undefined"
+                @evaluationSuccess="() => handleItemClick(selectedGroup)"
+              />
+              <ModelFilterButton
+                :models="availableModels"
+                :selectedModels="selectedModels"
+                @selectModels="selectModels"
+              />
+            </div>
           </div>
           <div class="chart-container">
             <CriteriaEvaluation
@@ -71,7 +82,7 @@
             />
 
             <CriteriaEvaluation
-              :criteria="llm_evaluations"
+              :criteria="filtered_llm_evaluations"
               class="criteria-container"
             />
           </div>
@@ -85,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import IdeaInput from "./components/IdeaInput.vue";
 import GroupList from "./components/GroupList.vue";
 import AssessmentChart from "./components/AssessmentChart.vue";
@@ -93,11 +104,38 @@ import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
 import EvaluationPopUp from "./components/EvaluationPopUp.vue";
 import axios from "axios";
 import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
+import ModelFilterButton from "./components/ModelFilterButton.vue";
 
 const groups = ref([]);
 const tutor_evaluations = ref([]);
 const llm_evaluations = ref([]);
+
 const selectedGroup = ref(null);
+const availableModels = ref([]);
+const selectedModels = ref([]);
+
+onMounted(async () => {
+  try {
+    // Fetch Groups
+    await updateGroups();
+    console.log("Fetched groups:", groups.value);
+
+    // Fetch LLM Models
+    const response = await axios.get("/api/llm/models");
+    console.log("Fetched models:", response.data);
+    availableModels.value = response.data;
+    selectedModels.value = response.data;
+  } catch (error) {
+    console.error("Failed to fetch groups:", error);
+    groups.value = [];
+  }
+});
+
+const filtered_llm_evaluations = computed(() => {
+  return llm_evaluations.value.filter((evaluation) => {
+    return selectedModels.value.includes(evaluation.model);
+  });
+});
 
 const updateGroups = async () => {
   return axios.get("/api/project-idea/get-ideas").then((response) => {
@@ -105,15 +143,10 @@ const updateGroups = async () => {
   });
 };
 
-onMounted(async () => {
-  try {
-    await updateGroups();
-    console.log("Fetched groups:", groups.value);
-  } catch (error) {
-    console.error("Failed to fetch groups:", error);
-    groups.value = [];
-  }
-});
+const selectModels = (models) => {
+  console.log("Selected models:", models);
+  selectedModels.value = models;
+};
 
 const deleteProjectIdea = async (id) => {
   try {
@@ -245,5 +278,12 @@ const handleItemClick = async (group) => {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 20px;
+}
+
+.inner_button_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 </style>
