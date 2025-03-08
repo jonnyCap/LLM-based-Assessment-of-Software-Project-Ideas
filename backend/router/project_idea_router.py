@@ -30,13 +30,16 @@ class Evaluation(BaseModel):
     completeness: int = Field(..., ge=1, le=10)
     feedback: str
 
+class TutorEvaluation(Evaluation):
+    username: str = Field(..., description="The username of the tutor who is evaluating the project")
+
 class LLMEvaluation(Evaluation):
     model: str = Field(..., description="The name of the LLM model used for evaluation")
 
 # Model for /load-evaluations response
 class EvaluationsResponse(BaseModel):
     llm_evaluations: List[LLMEvaluation]
-    tutor_evaluations: List[Evaluation]
+    tutor_evaluations: List[TutorEvaluation]
 
 
 router = APIRouter()
@@ -88,7 +91,7 @@ async def load_evaluations(
 
         return EvaluationsResponse(
             llm_evaluations=[LLMEvaluation(**dict(eval)) for eval in llm_evaluations],
-            tutor_evaluations=[Evaluation(**dict(eval)) for eval in tutor_evaluations]
+            tutor_evaluations=[TutorEvaluation(**dict(eval)) for eval in tutor_evaluations]
         )
     except HTTPException as e:
         raise e

@@ -7,6 +7,11 @@
         <h2>{{ title }}</h2>
         <p class="description-container">{{ description }}</p>
 
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" v-model="username" />
+        </div>
+
         <div v-for="(value, key) in evaluation" :key="key" class="input-group">
           <label :for="key">
             <label :for="key">
@@ -56,6 +61,7 @@ const props = defineProps({
 
 const emit = defineEmits(["evaluationSuccess"]);
 
+const username = ref("");
 const isPopupOpen = ref(false);
 const evaluation = ref({
   novelty: 1,
@@ -79,6 +85,7 @@ const submitEvaluation = async () => {
   try {
     const response = await axios.post("/api/tutor/evaluate", {
       project_id: props.id,
+      username: username.value,
       ...evaluation.value,
       feedback: feedback.value,
     });

@@ -13,6 +13,8 @@
           criteria.map((item, index) => ({
             title: item.model
               ? `Assessment ${index + 1} (${item.model})`
+              : item.username
+              ? `Assessment ${index + 1} (${item.username})`
               : `Assessment ${index + 1}`,
             value: index,
           }))
@@ -35,9 +37,15 @@
         </template>
 
         <!-- Last row: Feedback (single column, full width) -->
-        <div v-if="filteredCriteria.feedback" class="feedback-row">
+        <div class="feedback-row">
           <strong>Feedback:</strong>
-          <p class="feedback-text">{{ filteredCriteria.feedback }}</p>
+          <p class="feedback-text">
+            {{
+              filteredCriteria.feedback
+                ? filteredCriteria.feedback
+                : "This evaluation does not contain textual feedback."
+            }}
+          </p>
         </div>
       </div>
     </v-card>
@@ -63,7 +71,7 @@ const filteredCriteria = computed(() => {
   // Remove unwanted fields (except feedback)
   return Object.fromEntries(
     Object.entries(selected).filter(
-      ([key]) => !["id", "project_id", "model"].includes(key)
+      ([key]) => !["id", "project_id", "model", "username"].includes(key)
     )
   );
 });
