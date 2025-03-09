@@ -1,0 +1,204 @@
+<template>
+  <div>
+    <BasicButton @click="openPopup" :disabled="disabled"
+      >Summarize Evaluations</BasicButton
+    >
+    <div v-if="isPopupOpen" class="popup-overlay">
+      <div class="popup">
+        <h2>Summerized Evaluation</h2>
+        <!--YOU SHOULD PASS HERE NAMES FOR THE LABELS OTHERWISE IT WILL JUST BE ASSIGNMENT 1 AND ASSIGNMENT 2-->
+        <template v-if="loading">
+          <span class="loader"></span>
+        </template>
+        <template v-else-if="error">
+          <div>
+            <span>{{ error }}</span>
+          </div>
+        </template>
+        <template v-else>
+          <AssessmentChart
+            :criteria="[summerized_llm_evaluation, summerized_tutor_evaluation]"
+          />
+          <CriteriaEvaluation
+            :criteria="[summerized_llm_evaluation, summerized_tutor_evaluation]"
+          />
+        </template>
+        <div class="button-container">
+          <BasicButton
+            class="button reanalyze-button"
+            @click="summerizeEvaluations"
+            :disabled="loading"
+            >Reanalyze</BasicButton
+          >
+          <BasicButton @click="closePopup" class="button close-button"
+            >Close</BasicButton
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineProps, onMounted } from "vue";
+import BasicButton from "./Buttons/BasicButton.vue";
+import AssessmentChart from "./AssessmentChart.vue";
+import CriteriaEvaluation from "./CriteriaEvaluation.vue";
+import axios from "axios";
+
+const props = defineProps({
+  id: Number,
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const isPopupOpen = ref(false);
+const loading = ref(false);
+const summerized_tutor_evaluation = ref({});
+const summerized_llm_evaluation = ref({});
+const finished_summery = ref(false);
+const error = ref(null);
+
+// For cancelling requests
+let cancelTokenSource = null;
+
+const openPopup = () => {
+  isPopupOpen.value = true;
+  summerizeEvaluations();
+};
+
+const closePopup = () => {
+  isPopupOpen.value = false;
+
+  // Cancel the ongoing Axios request if exists
+  if (cancelTokenSource) {
+    cancelTokenSource.cancel("Request canceled due to popup close.");
+  }
+};
+
+const summerizeEvaluations = async () => {
+  try {
+    loading.value = true;
+
+    // For canceling
+    cancelTokenSource = axios.CancelToken.source();
+
+    const response = await axios.post(
+      "/api/project-idea/summarize",
+      {
+        id: parseInt(props.id, 10),
+        llm_advanced_summary_enabled: false,
+        tutor_advanced_summary_enabled: false,
+      },
+      { cancelToken: cancelTokenSource.token }
+    );
+
+    if (response.status === 200) {
+      console.log("Got result: ", response.data);
+      error.value = false;
+
+      summerized_llm_evaluation.value = response.data.llm_summary;
+      summerized_tutor_evaluation.value = response.data.tutor_summary;
+
+      finished_summery.value = true;
+      console.log("Evaluation submitted successfully.");
+    } else {
+      console.error("Failed to submit evaluation:", response.data);
+    }
+  } catch (err) {
+    if (axios.isCancel(err)) {
+      console.log("Request was canceled:", err.message);
+    } else {
+      console.error("Failed to submit evaluation:", err);
+      error.value =
+        "An error occured while summarizing your evaluations: " +
+        err.response?.data?.detail;
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
+
+<style scoped>
+.open-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  max-height: 500px;
+  overflow: auto;
+  width: 700px;
+  height: 800px;
+}
+
+.button {
+  margin: 0 30px;
+}
+
+.reanalyze-button {
+  background-color: green;
+}
+.close-button {
+  background-color: #dc3545;
+}
+
+.loader {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+  margin: 15px auto;
+  position: relative;
+  box-sizing: border-box;
+  animation: animloader 1s linear infinite alternate;
+  z-index: 2000;
+  color: gray;
+}
+
+@keyframes animloader {
+  0% {
+    box-shadow: -38px -12px, -14px 0, 14px 0, 38px 0;
+  }
+  33% {
+    box-shadow: -38px 0px, -14px -12px, 14px 0, 38px 0;
+  }
+  66% {
+    box-shadow: -38px 0px, -14px 0, 14px -12px, 38px 0;
+  }
+  100% {
+    box-shadow: -38px 0, -14px 0, 14px 0, 38px -12px;
+  }
+}
+
+.button-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+</style>
