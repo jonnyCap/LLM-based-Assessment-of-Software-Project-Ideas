@@ -120,17 +120,21 @@ async def summarize(
         # Summarize the tutor evaluations
         logger.info("Summarizing tutor-evaluations.")
         if summary_request.tutor_advanced_summary_enabled:
+            logger.info("Using advanced summarization. (Tutor)")
             tutor_summary: AverageEvaluation = await summarize_evaluations(tutor_evaluations)
         else:
+            logger.info("Using statistical summarization. (LLM)")
             tutor_summary: AverageEvaluation = average_evaluation(tutor_evaluations)
             tutor_summary.feedback = await summarize_feedback(tutor_summary.feedback)
 
         # Summarize the LLM evaluations
         logger.info("Summarizing llm-evaluations.")
         if summary_request.llm_advanced_summary_enabled:
+            logger.info("Using advanced summarization. (LLM)")
             llm_summary: AverageEvaluation = await summarize_evaluations(llm_evaluations)
             pass
         else:
+            logger.info("Using statistical summarization. (LLM)")
             llm_summary: AverageEvaluation = average_evaluation(llm_evaluations)
             llm_summary.feedback = await summarize_feedback(llm_summary.feedback)
 

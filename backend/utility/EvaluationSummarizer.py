@@ -1,6 +1,11 @@
 from utility.OllamaConnector import generate
 from typing import List, DefaultDict
 from pydantic import BaseModel, Field
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class Evaluation(BaseModel):
     id: int
@@ -71,10 +76,10 @@ async def summarize_feedback(feedback: str):
     return "Summarization failed due to an error."
 
 
-import json
 
 async def summarize_evaluations(evaluations: List[Evaluation]):
     if not evaluations:
+        logger.error("There have not been any evaluations.")
         return None  # Return None if no evaluations exist
 
     # Construct the structured prompt
@@ -119,21 +124,32 @@ async def summarize_evaluations(evaluations: List[Evaluation]):
 
     if response and response.status_code == 200:
         try:
-            llm_response = response.json().get("response", "{}")
-            llm_data = json.loads(llm_response)  # Parse the response into a dictionary
-            
+            response_json = response.json()
+            if "response" not in response_json:
+                raise ValueError("Missing 'response' key in LLM output.")
+    
+            llm_response = response_json["response"]  # Extract the response content
+            llm_data = json.loads(llm_response)  # Parse the JSON string from LLM
+    
+            # Ensure all required keys are present, otherwise default to None
             return AverageEvaluation(
                 num_evaluations=len(evaluations),
-                novelty=llm_data.get("novelty", None),
-                usefulness=llm_data.get("usefulness", None),
-                market_potential=llm_data.get("market_potential", None),
-                applicability=llm_data.get("applicability", None),
-                complexity=llm_data.get("complexity", None),
-                completeness=llm_data.get("completeness", None),
-                feedback=llm_data.get("feedback", "Summarization failed.")  # Use LLM-generated summary
+                novelty=llm_data.get("novelty"),
+                usefulness=llm_data.get("usefulness"),
+                market_potential=llm_data.get("market_potential"),
+                applicability=llm_data.get("applicability"),
+                complexity=llm_data.get("complexity"),
+                completeness=llm_data.get("completeness"),
+                feedback=llm_data.get("feedback", "Summarization failed.")
             )
-        except json.JSONDecodeError:
-            return {"error": "LLM response could not be parsed."}
 
-    return {"error": "Summarization failed due to an error."}
+        except json.JSONDecodeError:
+            logger.error("LLM response is not a valid JSON object.")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return None
+
+    logger.error("Summarization failed due to an error.")
+    return None
 

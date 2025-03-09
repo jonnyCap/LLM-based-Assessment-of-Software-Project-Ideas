@@ -5,9 +5,37 @@
     >
     <div v-if="isPopupOpen" class="popup-overlay">
       <div class="popup">
+        <button class="close-icon" @click="closePopup">✖</button>
+
         <h2>Summerized Evaluation</h2>
         <!--YOU SHOULD PASS HERE NAMES FOR THE LABELS OTHERWISE IT WILL JUST BE ASSIGNMENT 1 AND ASSIGNMENT 2-->
-        <template v-if="loading">
+        <template v-if="!options_chosen">
+          <div>
+            <h6>Choose the options for summarization</h6>
+            <p class="text">
+              By enabling the advanced evaluation, instead of simply calculating
+              the means of each category, a LLM will receive all the given
+              feedback and use them to reevaluate the project idea.
+            </p>
+
+            <v-checkbox
+              v-model="advanced_llm_summary_enabled"
+              label="LLM Advanced Summary"
+              density="compact"
+            ></v-checkbox>
+
+            <v-checkbox
+              v-model="advanced_tutor_summary_enabled"
+              label="Tutor Advanced Summary"
+              density="compact"
+            ></v-checkbox>
+
+            <BasicButton @click="summerizeEvaluations" class="button"
+              >Summarize</BasicButton
+            >
+          </div>
+        </template>
+        <template v-else-if="loading">
           <span class="loader"></span>
         </template>
         <template v-else-if="error">
@@ -27,13 +55,11 @@
         </template>
         <div class="button-container">
           <BasicButton
+            v-show="options_chosen"
             class="button reanalyze-button"
-            @click="summerizeEvaluations"
+            @click="enable_reevaluation"
             :disabled="loading"
             >Reanalyze</BasicButton
-          >
-          <BasicButton @click="closePopup" class="button close-button"
-            >Close</BasicButton
           >
         </div>
       </div>
@@ -58,12 +84,16 @@ const props = defineProps({
 
 const isPopupOpen = ref(false);
 const loading = ref(false);
+const error = ref(null);
+
+const advanced_llm_summary_enabled = ref(false);
+const advanced_tutor_summary_enabled = ref(false);
+const options_chosen = ref(false);
+
 const summerized_tutor_evaluation = ref({});
 const num_tutor_evaluations = ref(0);
 const summerized_llm_evaluation = ref({});
 const num_llm_evaluations = ref(0);
-const finished_summery = ref(false);
-const error = ref(null);
 
 const labels = computed(() => {
   return [
@@ -77,7 +107,6 @@ let cancelTokenSource = null;
 
 const openPopup = () => {
   isPopupOpen.value = true;
-  summerizeEvaluations();
 };
 
 const closePopup = () => {
@@ -87,10 +116,18 @@ const closePopup = () => {
   if (cancelTokenSource) {
     cancelTokenSource.cancel("Request canceled due to popup close.");
   }
+
+  // enable reevaluation
+  options_chosen.value = false;
+};
+
+const enable_reevaluation = () => {
+  options_chosen.value = false;
 };
 
 const summerizeEvaluations = async () => {
   try {
+    options_chosen.value = true;
     loading.value = true;
 
     // For canceling
@@ -100,8 +137,8 @@ const summerizeEvaluations = async () => {
       "/api/project-idea/summarize",
       {
         id: parseInt(props.id, 10),
-        llm_advanced_summary_enabled: false,
-        tutor_advanced_summary_enabled: false,
+        llm_advanced_summary_enabled: advanced_llm_summary_enabled.value,
+        tutor_advanced_summary_enabled: advanced_tutor_summary_enabled.value,
       },
       { cancelToken: cancelTokenSource.token }
     );
@@ -115,8 +152,6 @@ const summerizeEvaluations = async () => {
 
       num_llm_evaluations.value = response.data.llm_summary.num_evaluations;
       num_tutor_evaluations.value = response.data.tutor_summary.num_evaluations;
-
-      finished_summery.value = true;
       console.log("Evaluation submitted successfully.");
     } else {
       console.error("Failed to submit evaluation:", response.data);
@@ -214,5 +249,39 @@ const summerizeEvaluations = async () => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+.close-icon:hover {
+  color: red;
+}
+
+.popup {
+  position: relative; /* Ensure the close button is positioned within the popup */
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  max-height: 500px;
+  overflow: auto;
+  width: 700px;
+  height: 800px;
+}
+
+.text {
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-weight: 100;
 }
 </style>
