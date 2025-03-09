@@ -10,6 +10,7 @@
           :groups="groups"
           :handleItemClick="handleItemClick"
           :deleteProjectIdea="deleteProjectIdea"
+          :selectedGroup="selectedGroup"
         />
       </div>
     </div>
