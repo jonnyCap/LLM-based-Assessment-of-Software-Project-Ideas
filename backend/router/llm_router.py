@@ -1,14 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from utility.DatabaseConnector import DatabaseConnector, get_db
+from utility.OllamaConnector import generate, pull
 from pydantic import BaseModel
-import os
-import requests
 import logging
 import json
-import httpx
 
-MIN_RATING = 1
+MIN_RATING = 0
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,7 +17,6 @@ class EvaluationRequest(BaseModel):
 
 router = APIRouter()
 
-OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:8000")
 
 async def get_models_from_db(db: DatabaseConnector):
     # TODO: Load this on startup and cache it
@@ -50,18 +47,17 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
 
         prompt = (
             f"Evaluate the following project idea based on the criteria: \n"
-            f"Novelty (1-10), Usefulness (1-10), Market Potential (1-10), \n"
-            f"Applicability (1-10), Complexity (1-10), Completeness (1-10), Feedback.\n"
+            f"Novelty (0-10), Usefulness (0-10), Market Potential (0-10), \n"
+            f"Applicability (0-10), Complexity (0-10), Completeness (0-10), Feedback.\n"
             f"\nProject Idea: {description}\n"
             f"\nProvide a structured JSON response with exactly these fields. All fields must be lowercase."
         )        
 
         # Non-blocking HTTP request
-        async with httpx.AsyncClient(timeout=300) as client:
-            response = await client.post(
-                f"{OLLAMA_API_URL}/api/generate",
-                json={"model": evaluation_request.model, "prompt": prompt, "stream": False}
-            )
+
+        response = await generate(prompt=prompt, model=evaluation_request.model)
+        if response is None:
+            return HTTPException(status_code=500, detail="An error occured while interacting with LLMs.")
 
         logger.debug(f"Raw Ollama response: {response.text}")
         response_data = response.json()
@@ -102,8 +98,9 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
 async def pull_model(model: str, db: DatabaseConnector = Depends(get_db)):
     try:
         # Send request to pull the model
-        response = requests.post(f"{OLLAMA_API_URL}/api/pull", json={"model": model})
-        response_data = response.json()
+        response = await pull(model)
+        if response is None:
+            return HTTPException(status_code=500, detail="An error occured while pulling the model.")
 
         if response.status_code == 200:
             # Check if model already exists in ENUM
