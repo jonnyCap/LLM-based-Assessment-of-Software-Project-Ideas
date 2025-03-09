@@ -29,6 +29,7 @@ ChartJS.register(
 
 const props = defineProps({
   criteria: Array, // Expect an array of objects instead of a single object
+  labels: Array,
 });
 
 // Define a set of colors to be used for different datasets
@@ -70,7 +71,10 @@ const chartData = computed(() => ({
       .map((key) => criteriaSet[key]); // Extract values
 
     return {
-      label: `Assessment ${index + 1}`, // Label each dataset
+      label:
+        props.labels && props.labels[index]
+          ? props.labels[index]
+          : `Assessment ${index + 1}`,
       data: filteredData,
       borderColor: color,
       backgroundColor: color.replace("1)", "0.2)"), // Adjust transparency

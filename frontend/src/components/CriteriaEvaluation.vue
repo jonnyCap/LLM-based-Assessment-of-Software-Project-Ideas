@@ -9,16 +9,7 @@
       <!-- Dropdown to select an entry -->
       <v-select
         v-model="selectedEntry"
-        :items="
-          criteria.map((item, index) => ({
-            title: item.model
-              ? `Assessment ${index + 1} (${item.model})`
-              : item.username
-              ? `Assessment ${index + 1} (${item.username})`
-              : `Assessment ${index + 1}`,
-            value: index,
-          }))
-        "
+        :items="dropdownItems"
         label="Select Assessment"
         outlined
         dense
@@ -57,6 +48,7 @@ import { ref, computed } from "vue";
 
 const props = defineProps({
   criteria: Array, // Expect an array of assessments
+  labels: Array,
 });
 
 // Selected entry index (default to the first entry)
@@ -78,6 +70,20 @@ const filteredCriteria = computed(() => {
     )
   );
 });
+
+// Compute the dropdown items safely
+const dropdownItems = computed(() =>
+  props.criteria.map((item, index) => ({
+    title: props.labels?.[index]
+      ? props.labels[index]
+      : item.model
+      ? `Assessment ${index + 1} (${item.model})`
+      : item.username
+      ? `Assessment ${index + 1} (${item.username})`
+      : `Assessment ${index + 1}`,
+    value: index,
+  }))
+);
 
 // Convert object to an array of key-value pairs, excluding feedback
 const gridRows = computed(() => {

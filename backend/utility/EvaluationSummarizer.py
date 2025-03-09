@@ -61,7 +61,6 @@ async def summarize_feedback(feedback: str):
         "The following is a collection of feedback comments from multiple evaluations:\n\n"
         f"{feedback}\n\n"
         "Please provide a concise and well-structured summary of this feedback that captures the key points."
-        "This feedback should be directly addressed to the project owner."
     )
 
     response = await generate(prompt)

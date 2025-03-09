@@ -18,9 +18,11 @@
         <template v-else>
           <AssessmentChart
             :criteria="[summerized_llm_evaluation, summerized_tutor_evaluation]"
+            :labels="labels"
           />
           <CriteriaEvaluation
             :criteria="[summerized_llm_evaluation, summerized_tutor_evaluation]"
+            :labels="labels"
           />
         </template>
         <div class="button-container">
@@ -40,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted } from "vue";
+import { ref, defineProps, onMounted, computed } from "vue";
 import BasicButton from "./Buttons/BasicButton.vue";
 import AssessmentChart from "./AssessmentChart.vue";
 import CriteriaEvaluation from "./CriteriaEvaluation.vue";
@@ -57,9 +59,18 @@ const props = defineProps({
 const isPopupOpen = ref(false);
 const loading = ref(false);
 const summerized_tutor_evaluation = ref({});
+const num_tutor_evaluations = ref(0);
 const summerized_llm_evaluation = ref({});
+const num_llm_evaluations = ref(0);
 const finished_summery = ref(false);
 const error = ref(null);
+
+const labels = computed(() => {
+  return [
+    `LLM summary (${num_llm_evaluations.value} evals.)`,
+    `Tutor summary (${num_tutor_evaluations.value} evals.)`,
+  ];
+});
 
 // For cancelling requests
 let cancelTokenSource = null;
@@ -101,6 +112,9 @@ const summerizeEvaluations = async () => {
 
       summerized_llm_evaluation.value = response.data.llm_summary;
       summerized_tutor_evaluation.value = response.data.tutor_summary;
+
+      num_llm_evaluations.value = response.data.llm_summary.num_evaluations;
+      num_tutor_evaluations.value = response.data.tutor_summary.num_evaluations;
 
       finished_summery.value = true;
       console.log("Evaluation submitted successfully.");
