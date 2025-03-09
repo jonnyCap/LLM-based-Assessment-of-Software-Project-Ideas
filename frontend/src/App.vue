@@ -18,6 +18,10 @@
     <div class="right-side">
       <div class="assessment-header">
         <h3>LLM-based Assessment</h3>
+        <EvaluationSummarizer
+          :id="selectedGroup?.id"
+          :disabled="!selectedGroup || selectedGroup === undefined"
+        />
       </div>
 
       <template v-if="selectedGroup">
@@ -110,6 +114,7 @@ import EvaluationPopUp from "./components/EvaluationPopUp.vue";
 import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
 import MultiSelectDropdown from "./components/MutliSelectDropdown.vue";
 import axios from "axios";
+import EvaluationSummarizer from "./components/EvaluationSummarizer.vue";
 
 const groups = ref([]);
 const tutor_evaluations = ref([]);
@@ -262,6 +267,8 @@ const handleItemClick = async (group) => {
   border-bottom: 2px solid #ddd;
   padding-bottom: 10px;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
 }
 
 /* Chart and Criteria Section */

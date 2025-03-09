@@ -71,7 +71,10 @@ const filteredCriteria = computed(() => {
   // Remove unwanted fields (except feedback)
   return Object.fromEntries(
     Object.entries(selected).filter(
-      ([key]) => !["id", "project_id", "model", "username"].includes(key)
+      ([key]) =>
+        !["id", "project_id", "model", "username", "num_evaluations"].includes(
+          key
+        )
     )
   );
 });

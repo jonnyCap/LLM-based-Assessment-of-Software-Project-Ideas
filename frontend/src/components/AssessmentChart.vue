@@ -58,7 +58,14 @@ const chartData = computed(() => ({
     const filteredData = Object.keys(criteriaSet)
       .filter(
         (key) =>
-          !["project_id", "id", "feedback", "model", "username"].includes(key)
+          ![
+            "project_id",
+            "id",
+            "feedback",
+            "model",
+            "username",
+            "num_evaluations",
+          ].includes(key)
       ) // Remove unwanted fields
       .map((key) => criteriaSet[key]); // Extract values
 
