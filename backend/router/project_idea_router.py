@@ -94,6 +94,7 @@ async def load_evaluations(
     except HTTPException as e:
         raise e
     except Exception as e:
+        logger.error(f"Failed to load evaluations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -10,12 +10,12 @@ logger.setLevel(logging.DEBUG)
 class Evaluation(BaseModel):
     id: int
     project_id: int
-    novelty: int = Field(..., ge=1, le=10)
-    usefulness: int = Field(..., ge=1, le=10)
-    market_potential: int = Field(..., ge=1, le=10)
-    applicability: int = Field(..., ge=1, le=10)
-    complexity: int = Field(..., ge=1, le=10)
-    completeness: int = Field(..., ge=1, le=10)
+    novelty: int = Field(..., ge=0, le=10)
+    usefulness: int = Field(..., ge=0, le=10)
+    market_potential: int = Field(..., ge=0, le=10)
+    applicability: int = Field(..., ge=0, le=10)
+    complexity: int = Field(..., ge=0, le=10)
+    completeness: int = Field(..., ge=0, le=10)
     feedback: str
 
 class TutorEvaluation(Evaluation):

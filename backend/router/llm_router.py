@@ -14,6 +14,7 @@ logger.setLevel(logging.DEBUG)
 class EvaluationRequest(BaseModel):
     id: int
     model: str
+    advanced_prompt: bool
 
 router = APIRouter()
 
@@ -45,44 +46,123 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
 
         project_id, description = project_idea[0]["id"], project_idea[0]["description"]
 
-        prompt = (
-            f"Evaluate the following project idea based on the criteria: \n"
-            f"Novelty (0-10), Usefulness (0-10), Market Potential (0-10), \n"
-            f"Applicability (0-10), Complexity (0-10), Completeness (0-10), Feedback.\n"
-            f"\nProject Idea: {description}\n"
-            f"\nProvide a structured JSON response with exactly these fields. All fields must be lowercase."
-        )        
+        if evaluation_request.advanced_prompt:
+            logger.info("Using advanced evaluation prompt.")
 
-        # Non-blocking HTTP request
+            criteria = {
+                "novelty": "Assess how new and original this idea is. Have similar ideas been proposed or implemented before?",
+                "usefulness": "Evaluate whether this project has a real-world application. Does it solve a tangible problem or provide value?",
+                "market potential": "Analyze the market viability of this project. How would it perform in the market considering competition and demand?",
+                "applicability": "Determine if this project is feasible and fits within the context of a Software Project Management course. Can it realistically be executed?",
+                "complexity": "Assess whether the project provides the right level of complexity for a Software Project Management course. Is it too simple or too complicated?",
+                "completeness": "Evaluate how well the project has been described. Does it account for necessary details, edge cases, and potential challenges?"
+            }
+            evaluation_results = {}
+            
+            for criterion, description_text in criteria.items():
+                prompt = (
+                    f"Critically valuate the following project idea based on {criterion}.\n"
+                    f"{description_text}\n"
+                    f"Rate it on a scale from 0-10 and provide a brief justification.\n"
+                    f"\nProject Idea: {description}\n"
+                    f"Provide a structured JSON response with fields: '{criterion}', 'justification'."
+                )
 
-        response = await generate(prompt=prompt, model=evaluation_request.model)
-        if response is None:
-            return HTTPException(status_code=500, detail="An error occured while interacting with LLMs.")
+                response = await generate(prompt=prompt, model=evaluation_request.model)
+                if response is None:
+                    raise HTTPException(status_code=500, detail=f"Failed to evaluate {criterion}.")
+                
+                try:
+                    structured_data = json.loads(response.json().get("response", "{}"))
+                    evaluation_results[criterion] = {
+                        "score": int(structured_data.get(criterion, MIN_RATING)),
+                        "justification": structured_data.get("justification", "No justification provided")
+                    }
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse JSON for {criterion}: {e}")
+                    raise HTTPException(status_code=500, detail=f"Invalid JSON format for {criterion}.")
 
-        logger.debug(f"Raw Ollama response: {response.text}")
-        response_data = response.json()
+                prompt_feedback = (
+                    f"Provide a single concise feedback summary for the following project idea, considering all aspects: {', '.join(criteria.keys())}.\n"
+                    f"\nProject Idea: {description}\n"
+                    f"\n**Your response must be a structured JSON object with exactly one field named 'feedback'.**\n"
+                    f"Ensure the response follows this exact JSON format:\n"
+                    f"\n```json\n"
+                    f"{{\n"
+                    f'    "feedback": "<A short summary of strengths, weaknesses, and key recommendations>"\n'
+                    f"}}\n"
+                    f"```\n"
+                    f"\nReturn only this JSON object and nothing else."
+                )
 
-        try:
-            structured_data = json.loads(response_data["response"])  # Convert it into a proper dictionary
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON from response field: {e}")
-            raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response")
-        
-        def safe_int(value, default):
+            
+            response_feedback = await generate(prompt=prompt_feedback, model=evaluation_request.model)
+            if response_feedback is None:
+                raise HTTPException(status_code=500, detail="Failed to generate feedback.")
+            
             try:
-                return int(value)  # Convert string to integer
-            except (ValueError, TypeError):
-                return default  # Use default value if conversion fails
+                structured_feedback = json.loads(response_feedback.json().get("response", "{}"))
+                feedback = structured_feedback.get("feedback", "No feedback provided")
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON for feedback: {e}")
+                raise HTTPException(status_code=500, detail="Invalid JSON format for feedback.")
+        
+            novelty = evaluation_results["novelty"]["score"]
+            usefulness = evaluation_results["usefulness"]["score"]
+            market_potential = evaluation_results["market potential"]["score"]
+            applicability = evaluation_results["applicability"]["score"]
+            complexity = evaluation_results["complexity"]["score"]
+            completeness = evaluation_results["completeness"]["score"]
+        else:
+            logger.info("Using basic evaluation prompt.")
+            prompt = (
+                f"Critically evaluate the following project idea based on the criteria: \n"
+                f"1. Novelty (0-10): Assess how new and original this idea is. Have similar ideas been proposed or implemented before?\n"
+                f"2. Usefulness (0-10): Evaluate whether this project has a real-world application. Does it solve a tangible problem or provide value?\n"
+                f"3. Market Potential (0-10): Analyze the market viability of this project. How would it perform in the market considering competition and demand?\n"
+                f"4. Applicability (0-10): Determine if this project is feasible and fits within the context of a Software Project Management course. Can it realistically be executed?\n"
+                f"5. Complexity (0-10): Assess whether the project provides the right level of complexity for a Software Project Management course. Is it too simple or too complicated?\n"
+                f"6. Completeness (0-10): Evaluate how well the project has been described. Does it account for necessary details, edge cases, and potential challenges?\n"
+                f"\nProject Idea: {description}\n"
+                f"\n**Provide a structured JSON response with exactly these fields, ensuring all keys are in lowercase. The JSON format must be as follows:**\n"
+                f"\n```json\n"
+                f"{{\n"
+                f'    "novelty": <integer (0-10)>,\n'
+                f'    "usefulness": <integer (0-10)>,\n'
+                f'    "market_potential": <integer (0-10)>,\n'
+                f'    "applicability": <integer (0-10)>,\n'
+                f'    "complexity": <integer (0-10)>,\n'
+                f'    "completeness": <integer (0-10)>,\n'
+                f'    "feedback": "<string with a concise evaluation summary, highlighting strengths, weaknesses, and key recommendations>"\n'
+                f"}}\n"
+                f"```\n"
+                f"\nEnsure that the response follows this structure exactly, with numeric values between 0 and 10 and a meaningful feedback string."
+            )
 
-        novelty = safe_int(structured_data.get("novelty"), MIN_RATING)
-        usefulness = safe_int(structured_data.get("usefulness"), MIN_RATING)
-        market_potential = safe_int(structured_data.get("market_potential"), MIN_RATING)
-        applicability = safe_int(structured_data.get("applicability"), MIN_RATING)
-        complexity = safe_int(structured_data.get("complexity"), MIN_RATING)
-        completeness = safe_int(structured_data.get("completeness"), MIN_RATING)
-        feedback = structured_data.get("feedback", "No feedback")
+            response = await generate(prompt=prompt, model=evaluation_request.model)
+            if response is None:
+                return HTTPException(status_code=500, detail="An error occurred while interacting with LLMs.")
 
-        # Asynchronously insert into database
+            logger.debug(f"Raw Ollama response: {response.text}")
+            response_data = response.json()
+
+            try:
+                if isinstance(response_data["response"], str):
+                    structured_data = json.loads(response_data["response"])  # First parsing
+                else:
+                    structured_data = response_data["response"]  # Already a dict
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON from response field: {e}")
+                raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response")
+    
+            novelty = int(structured_data.get("novelty", MIN_RATING))
+            usefulness = int(structured_data.get("usefulness", MIN_RATING))
+            market_potential = int(structured_data.get("market_potential", MIN_RATING))
+            applicability = int(structured_data.get("applicability", MIN_RATING))
+            complexity = int(structured_data.get("complexity", MIN_RATING))
+            completeness = int(structured_data.get("completeness", MIN_RATING))
+            feedback = structured_data.get("feedback", "No feedback")
+
         await db.execute(
             "INSERT INTO llm_evaluations (project_id, model, novelty, usefulness, market_potential, applicability, complexity, completeness, feedback) "
             "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -92,7 +172,10 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         
         return JSONResponse(content={"message": "Evaluation added successfully"}, status_code=200)
     except Exception as e:
+        logger.error(f"Failed to evaluate project idea: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 @router.post("/pull")
 async def pull_model(model: str, db: DatabaseConnector = Depends(get_db)):

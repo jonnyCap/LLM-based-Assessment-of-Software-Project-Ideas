@@ -7,6 +7,12 @@
       </option>
     </select>
 
+    <!-- Advanced Prompt Checkbox -->
+    <label class="checkbox-label">
+      <input type="checkbox" v-model="advanced_prompt" />
+      Adv. Prompt
+    </label>
+
     <!-- Button with Loading State -->
     <BasicButton
       @click="performEvaluation"
@@ -30,6 +36,7 @@ import BasicButton from "./Buttons/BasicButton.vue";
 const status = ref(null);
 const isLoading = ref(false); // Loading state
 const models = ref([]);
+const advanced_prompt = ref(false);
 const selectedModel = ref(null);
 
 const props = defineProps({
@@ -66,6 +73,7 @@ const performEvaluation = async () => {
     const response = await axios.post("/api/llm/evaluate", {
       model: selectedModel.value,
       id: props.id,
+      advanced_prompt: advanced_prompt.value,
     });
 
     if (response.status === 200) {
@@ -125,5 +133,17 @@ const performEvaluation = async () => {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  cursor: pointer;
 }
 </style>
