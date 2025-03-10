@@ -57,7 +57,7 @@
 
           <div class="popup-container">
             <div class="inner_button_container">
-              <EvaluationPopUp
+              <TutorEvaluationButton
                 :disabled="!selectedGroup || selectedGroup === undefined"
                 :title="'LLM Evaluation'"
                 :description="
@@ -111,7 +111,7 @@ import IdeaInput from "./components/IdeaInput.vue";
 import GroupList from "./components/GroupList.vue";
 import AssessmentChart from "./components/AssessmentChart.vue";
 import CriteriaEvaluation from "./components/CriteriaEvaluation.vue";
-import EvaluationPopUp from "./components/EvaluationPopUp.vue";
+import TutorEvaluationButton from "./components/TutorEvaluationButton.vue";
 import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
 import MultiSelectDropdown from "./components/MutliSelectDropdown.vue";
 import axios from "axios";
