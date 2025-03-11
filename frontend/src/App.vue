@@ -257,7 +257,9 @@ const handleItemClick = async (group) => {
   width: 70%;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Title Section */
@@ -285,6 +287,7 @@ const handleItemClick = async (group) => {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  width: 100%;
 }
 
 .popup-container {
