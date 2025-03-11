@@ -23,6 +23,7 @@ class TutorEvaluation(Evaluation):
 
 class LLMEvaluation(Evaluation):
     model: str = Field(..., description="The name of the LLM model used for evaluation")
+    advanced_prompt: bool
 
 class AverageEvaluation(BaseModel):
     num_evaluations: int

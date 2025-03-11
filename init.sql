@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS llm_evaluations (
     complexity INT CHECK (complexity BETWEEN 0 AND 10),
     completeness INT CHECK (completeness BETWEEN 0 AND 10),
     feedback TEXT,
+    advanced_prompt BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_project FOREIGN KEY (project_id) REFERENCES project_descriptions(id) ON DELETE CASCADE
 );

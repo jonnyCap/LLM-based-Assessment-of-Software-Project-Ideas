@@ -52,7 +52,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             criteria = {
                 "novelty": "Assess how new and original this idea is. Have similar ideas been proposed or implemented before?",
                 "usefulness": "Evaluate whether this project has a real-world application. Does it solve a tangible problem or provide value?",
-                "market potential": "Analyze the market viability of this project. How would it perform in the market considering competition and demand?",
+                "market_potential": "Analyze the market viability of this project. How would it perform in the market considering competition and demand?",
                 "applicability": "Determine if this project is feasible and fits within the context of a Software Project Management course. Can it realistically be executed?",
                 "complexity": "Assess whether the project provides the right level of complexity for a Software Project Management course. Is it too simple or too complicated?",
                 "completeness": "Evaluate how well the project has been described. Does it account for necessary details, edge cases, and potential challenges?"
@@ -61,11 +61,17 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             
             for criterion, description_text in criteria.items():
                 prompt = (
-                    f"Critically valuate the following project idea based on {criterion}.\n"
+                    f"Critically evaluate the following project idea based on '{criterion.replace('_', ' ')}'.\n"
                     f"{description_text}\n"
                     f"Rate it on a scale from 0-10 and provide a brief justification.\n"
                     f"\nProject Idea: {description}\n"
-                    f"Provide a structured JSON response with fields: '{criterion}', 'justification'."
+                    f"\n**Your response must be a structured JSON object with exactly two fields: '{criterion}' (integer 0-10) and 'justification' (string).**\n"
+                    f"Ensure the response follows this exact JSON format:\n"
+                    f"{{\n"
+                    f'    "{criterion}": <integer (0-10)>,\n'
+                    f'    "justification": "<A brief justification for the given score>"\n'
+                    f"}}\n"
+                    f"\nReturn only this JSON object and nothing else."
                 )
 
                 response = await generate(prompt=prompt, model=evaluation_request.model)
@@ -73,13 +79,21 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                     raise HTTPException(status_code=500, detail=f"Failed to evaluate {criterion}.")
                 
                 try:
-                    structured_data = json.loads(response.json().get("response", "{}"))
+                    raw_response = response.json()
+                    logger.debug(f"Raw Ollama response for {criterion}: {raw_response}")
+
+                    structured_data = json.loads(raw_response.get("response", "{}"))
+
+                    if criterion not in structured_data:
+                        raise ValueError(f"Missing '{criterion}' key in LLM output.")
+
                     evaluation_results[criterion] = {
                         "score": int(structured_data.get(criterion, MIN_RATING)),
                         "justification": structured_data.get("justification", "No justification provided")
                     }
                 except json.JSONDecodeError as e:
                     logger.error(f"Failed to parse JSON for {criterion}: {e}")
+                    logger.error(f"Structured Data: {structured_data}")
                     raise HTTPException(status_code=500, detail=f"Invalid JSON format for {criterion}.")
 
                 prompt_feedback = (
@@ -87,11 +101,9 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                     f"\nProject Idea: {description}\n"
                     f"\n**Your response must be a structured JSON object with exactly one field named 'feedback'.**\n"
                     f"Ensure the response follows this exact JSON format:\n"
-                    f"\n```json\n"
                     f"{{\n"
                     f'    "feedback": "<A short summary of strengths, weaknesses, and key recommendations>"\n'
                     f"}}\n"
-                    f"```\n"
                     f"\nReturn only this JSON object and nothing else."
                 )
 
@@ -109,7 +121,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         
             novelty = evaluation_results["novelty"]["score"]
             usefulness = evaluation_results["usefulness"]["score"]
-            market_potential = evaluation_results["market potential"]["score"]
+            market_potential = evaluation_results["market_potential"]["score"]
             applicability = evaluation_results["applicability"]["score"]
             complexity = evaluation_results["complexity"]["score"]
             completeness = evaluation_results["completeness"]["score"]
@@ -125,7 +137,6 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                 f"6. Completeness (0-10): Evaluate how well the project has been described. Does it account for necessary details, edge cases, and potential challenges?\n"
                 f"\nProject Idea: {description}\n"
                 f"\n**Provide a structured JSON response with exactly these fields, ensuring all keys are in lowercase. The JSON format must be as follows:**\n"
-                f"\n```json\n"
                 f"{{\n"
                 f'    "novelty": <integer (0-10)>,\n'
                 f'    "usefulness": <integer (0-10)>,\n'
@@ -135,7 +146,6 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                 f'    "completeness": <integer (0-10)>,\n'
                 f'    "feedback": "<string with a concise evaluation summary, highlighting strengths, weaknesses, and key recommendations>"\n'
                 f"}}\n"
-                f"```\n"
                 f"\nEnsure that the response follows this structure exactly, with numeric values between 0 and 10 and a meaningful feedback string."
             )
 
@@ -164,10 +174,10 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             feedback = structured_data.get("feedback", "No feedback")
 
         await db.execute(
-            "INSERT INTO llm_evaluations (project_id, model, novelty, usefulness, market_potential, applicability, complexity, completeness, feedback) "
-            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            "INSERT INTO llm_evaluations (project_id, model, novelty, usefulness, market_potential, applicability, complexity, completeness, feedback, advanced_prompt) "
+            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             project_id, evaluation_request.model,
-            novelty, usefulness, market_potential, applicability, complexity, completeness, feedback
+            novelty, usefulness, market_potential, applicability, complexity, completeness, feedback, evaluation_request.advanced_prompt
         )
         
         return JSONResponse(content={"message": "Evaluation added successfully"}, status_code=200)

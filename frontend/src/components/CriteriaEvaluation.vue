@@ -64,9 +64,14 @@ const filteredCriteria = computed(() => {
   return Object.fromEntries(
     Object.entries(selected).filter(
       ([key]) =>
-        !["id", "project_id", "model", "username", "num_evaluations"].includes(
-          key
-        )
+        ![
+          "id",
+          "project_id",
+          "model",
+          "username",
+          "num_evaluations",
+          "advanced_prompt",
+        ].includes(key)
     )
   );
 });
@@ -76,7 +81,9 @@ const dropdownItems = computed(() =>
   props.criteria.map((item, index) => ({
     title: props.labels?.[index]
       ? props.labels[index]
-      : item.model
+      : item.model && item.advanced_prompt
+      ? `Assessment ${index + 1} (${item.model}) (Adv. Prompt)`
+      : item.model && !item.advanced_prompt
       ? `Assessment ${index + 1} (${item.model})`
       : item.username
       ? `Assessment ${index + 1} (${item.username})`
