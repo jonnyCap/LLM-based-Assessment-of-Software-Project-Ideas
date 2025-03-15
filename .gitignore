@@ -45,3 +45,4 @@ pytest_cache/
 # Docker-related
 .dockerignore
 docker-compose.override.yml
+.qodo

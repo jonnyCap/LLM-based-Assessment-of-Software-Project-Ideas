@@ -1,0 +1,52 @@
+// Define ENUM type for predefined model names
+Enum model_enum {
+  "mistral"
+  "deepseek-r1"
+  "mixtral"
+  "llama3"
+  "phi2"
+  "gemma2"
+}
+
+// Define project_descriptions table
+Table project_descriptions {
+  id serial [primary key]
+  description text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// Define llm_evaluations table
+Table llm_evaluations {
+  id serial [primary key]
+  project_id integer [not null]
+  model model_enum [not null] // Model name stored as ENUM
+  novelty integer
+  usefulness integer
+  market_potential integer
+  applicability integer
+  complexity integer
+  completeness integer
+  feedback text
+  advanced_prompt boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// Define tutor_evaluations table
+Table tutor_evaluations {
+  id serial [primary key]
+  project_id integer [not null]
+  username text [not null, default: 'anonymous']
+  novelty integer
+  usefulness integer
+  market_potential integer
+  applicability integer
+  complexity integer
+  completeness integer
+  feedback text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// Define relationships
+Ref: llm_evaluations.project_id > project_descriptions.id
+Ref: tutor_evaluations.project_id > project_descriptions.id
+
