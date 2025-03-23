@@ -29,15 +29,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from "axios";
+import { ref, watch } from "vue";
 import BasicButton from "./Buttons/BasicButton.vue";
 
 const status = ref(null);
-const isLoading = ref(false); // Loading state
-const models = ref([]);
-const advanced_prompt = ref(false);
+const isLoading = ref(false);
 const selectedModel = ref(null);
+const advanced_prompt = ref(false);
 
 const props = defineProps({
   disabled: {
@@ -45,29 +43,30 @@ const props = defineProps({
     default: false,
   },
   id: Number,
+  models: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(["evaluationSuccess"]);
 
-onMounted(async () => {
-  try {
-    const response = await axios.get("/api/llm/models");
-    models.value = response.data;
-    if (models.value.length > 0) {
-      selectedModel.value = models.value[0];
-    } else {
-      console.error("No LLM models found");
+// Set default selected model when models are available
+watch(
+  () => props.models,
+  (newModels) => {
+    if (newModels.length > 0 && !selectedModel.value) {
+      selectedModel.value = newModels[0];
     }
-  } catch (error) {
-    console.error("Failed to fetch LLM models:", error);
-  }
-});
+  },
+  { immediate: true }
+);
 
 const performEvaluation = async () => {
   if (!selectedModel.value || props.disabled || isLoading.value) return;
 
-  isLoading.value = true; // Start loading
-  status.value = null; // Reset status
+  isLoading.value = true;
+  status.value = null;
 
   try {
     const response = await axios.post("/api/llm/evaluate", {
@@ -78,14 +77,14 @@ const performEvaluation = async () => {
 
     if (response.status === 200) {
       status.value = "success";
-      emit("evaluationSuccess"); // Notify parent
+      emit("evaluationSuccess");
     } else {
       status.value = "error";
     }
   } catch (error) {
     status.value = "error";
   } finally {
-    isLoading.value = false; // Stop loading after API call
+    isLoading.value = false;
   }
 };
 </script>

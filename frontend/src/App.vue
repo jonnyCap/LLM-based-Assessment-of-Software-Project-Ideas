@@ -75,6 +75,7 @@
             <div class="inner_button_container">
               <LLMEvaluationButton
                 :id="selectedGroup?.id"
+                :models="availableModels"
                 :disabled="!selectedGroup || selectedGroup === undefined"
                 @evaluationSuccess="() => handleItemClick(selectedGroup)"
               />
@@ -134,10 +135,7 @@ onMounted(async () => {
     console.log("Fetched groups:", groups.value);
 
     // Fetch LLM Models
-    const response = await axios.get("/api/llm/models");
-    console.log("Fetched models:", response.data);
-    availableModels.value = response.data;
-    selectedModels.value = response.data;
+    await fetchModels();
   } catch (error) {
     console.error("Failed to fetch groups:", error);
     groups.value = [];
@@ -177,6 +175,13 @@ const filtered_llm_evaluations = computed(() => {
 const updateGroups = async () => {
   return axios.get("/api/project-idea/get-ideas").then((response) => {
     groups.value = response.data;
+  });
+};
+
+const fetchModels = async () => {
+  return axios.get("/api/llm/models").then((response) => {
+    availableModels.value = response.data;
+    selectedModels.value = response.data;
   });
 };
 
