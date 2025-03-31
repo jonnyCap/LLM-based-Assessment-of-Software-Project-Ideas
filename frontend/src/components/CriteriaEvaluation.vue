@@ -71,6 +71,7 @@ const filteredCriteria = computed(() => {
           "username",
           "num_evaluations",
           "advanced_prompt",
+          "created_at",
         ].includes(key)
     )
   );

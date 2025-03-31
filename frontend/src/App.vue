@@ -36,20 +36,18 @@
             </div>
           </div>
           <template
-            v-if="
-              tutor_evaluations.length === 0 && llm_evaluations.length === 0
-            "
+            v-if="tutorEvaluations.length === 0 && llmEvaluations.length === 0"
           >
             <div class="no-data-placeholder">No data available yet.</div>
           </template>
           <template v-else>
             <div class="chart-container">
               <AssessmentChart
-                :criteria="filtered_tutor_evaluations"
+                :criteria="filteredTutorEvaluations"
                 class="chart-container"
               />
               <AssessmentChart
-                :criteria="filtered_llm_evaluations"
+                :criteria="filteredLLMEvaluations"
                 class="chart-container"
               />
             </div>
@@ -67,8 +65,8 @@
                 @evaluationSuccess="() => handleItemClick(selectedGroup)"
               />
               <MultiSelectDropdown
-                :options="available_tutor_names"
-                v-model:selectedItems="selected_tutor_names"
+                :options="availableTutorNames"
+                v-model:selectedItems="selectedTutorNames"
                 buttonLabel="Filter Tutors"
               />
             </div>
@@ -88,12 +86,12 @@
           </div>
           <div class="chart-container">
             <CriteriaEvaluation
-              :criteria="filtered_tutor_evaluations"
+              :criteria="filteredTutorEvaluations"
               class="criteria-container"
             />
 
             <CriteriaEvaluation
-              :criteria="filtered_llm_evaluations"
+              :criteria="filteredLLMEvaluations"
               class="criteria-container"
             />
           </div>
@@ -119,14 +117,31 @@ import axios from "axios";
 import EvaluationSummarizer from "./components/EvaluationSummarizer.vue";
 
 const groups = ref([]);
-const tutor_evaluations = ref([]);
-const llm_evaluations = ref([]);
+const tutorEvaluations = ref([]);
+const llmEvaluations = ref([]);
 
 const selectedGroup = ref(null);
 const availableModels = ref([]);
 const selectedModels = ref([]);
 
-const selected_tutor_names = ref([]);
+const selectedTutorNames = ref([]);
+const availableTutorNames = computed(() => {
+  return [
+    ...new Set(tutorEvaluations.value.map((evaluation) => evaluation.username)),
+  ];
+});
+
+const filteredTutorEvaluations = computed(() => {
+  return tutorEvaluations.value.filter((evaluation) => {
+    return selectedTutorNames.value.includes(evaluation.username);
+  });
+});
+
+const filteredLLMEvaluations = computed(() => {
+  return llmEvaluations.value.filter((evaluation) => {
+    return selectedModels.value.includes(evaluation.model);
+  });
+});
 
 onMounted(async () => {
   try {
@@ -142,34 +157,14 @@ onMounted(async () => {
   }
 });
 
-const available_tutor_names = computed(() => {
-  return [
-    ...new Set(
-      tutor_evaluations.value.map((evaluation) => evaluation.username)
-    ),
-  ];
-});
-
-watch(available_tutor_names, (newValue, oldValue) => {
+watch(availableTutorNames, (newValue, oldValue) => {
   const added = newValue.filter((name) => !oldValue.includes(name));
   const removed = oldValue.filter((name) => !newValue.includes(name));
 
-  // Add and remove these values from selected_tutor_names
-  selected_tutor_names.value = [
-    ...new Set([...selected_tutor_names.value, ...added]),
+  // Add and remove these values from selectedTutorNames
+  selectedTutorNames.value = [
+    ...new Set([...selectedTutorNames.value, ...added]),
   ].filter((name) => !removed.includes(name));
-});
-
-const filtered_tutor_evaluations = computed(() => {
-  return tutor_evaluations.value.filter((evaluation) => {
-    return selected_tutor_names.value.includes(evaluation.username);
-  });
-});
-
-const filtered_llm_evaluations = computed(() => {
-  return llm_evaluations.value.filter((evaluation) => {
-    return selectedModels.value.includes(evaluation.model);
-  });
 });
 
 const updateGroups = async () => {
@@ -216,12 +211,12 @@ const handleItemClick = async (group) => {
     });
 
     // Store the evaluations in the refs
-    tutor_evaluations.value = response.data.tutor_evaluations || [];
-    llm_evaluations.value = response.data.llm_evaluations || [];
+    tutorEvaluations.value = response.data.tutor_evaluations || [];
+    llmEvaluations.value = response.data.llm_evaluations || [];
 
     console.log("Evaluation data stored:", {
-      tutor_evaluations: tutor_evaluations.value,
-      llm_evaluations: llm_evaluations.value,
+      tutorEvaluations: tutorEvaluations.value,
+      llmEvaluations: llmEvaluations.value,
     });
   } catch (error) {
     console.error("Failed to load evaluations:", error);

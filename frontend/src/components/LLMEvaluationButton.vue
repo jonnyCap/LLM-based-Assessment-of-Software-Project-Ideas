@@ -9,7 +9,7 @@
 
     <!-- Advanced Prompt Checkbox -->
     <label class="checkbox-label">
-      <input type="checkbox" v-model="advanced_prompt" />
+      <input type="checkbox" v-model="advancedPrompt" />
       Adv. Prompt
     </label>
 
@@ -31,11 +31,12 @@
 <script setup>
 import { ref, watch } from "vue";
 import BasicButton from "./Buttons/BasicButton.vue";
+import axios from "axios";
 
 const status = ref(null);
 const isLoading = ref(false);
 const selectedModel = ref(null);
-const advanced_prompt = ref(false);
+const advancedPrompt = ref(false);
 
 const props = defineProps({
   disabled: {
@@ -63,7 +64,9 @@ watch(
 );
 
 const performEvaluation = async () => {
-  if (!selectedModel.value || props.disabled || isLoading.value) return;
+  if (!selectedModel.value || props.disabled || isLoading.value) {
+    console.log("Evaluation is disabled or already in progress.");
+  }
 
   isLoading.value = true;
   status.value = null;
@@ -72,7 +75,7 @@ const performEvaluation = async () => {
     const response = await axios.post("/api/llm/evaluate", {
       model: selectedModel.value,
       id: props.id,
-      advanced_prompt: advanced_prompt.value,
+      advanced_prompt: advancedPrompt.value,
     });
 
     if (response.status === 200) {
@@ -82,6 +85,7 @@ const performEvaluation = async () => {
       status.value = "error";
     }
   } catch (error) {
+    console.log("Error during evaluation:", error);
     status.value = "error";
   } finally {
     isLoading.value = false;

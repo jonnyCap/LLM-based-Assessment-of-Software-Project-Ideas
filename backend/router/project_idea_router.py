@@ -77,10 +77,11 @@ async def fetch_evaluations(db: DatabaseConnector, id: int):
     tutor_evaluations = await db.fetch(query_tutor, id)
 
     logger.debug(f"LLM Results: {llm_evaluations}")
+    logger.debug(f"Tutor Results: {tutor_evaluations}")
 
     return EvaluationsResponse(
-        llm_evaluations=[LLMEvaluation(**dict(eval)) for eval in llm_evaluations],
-        tutor_evaluations=[TutorEvaluation(**dict(eval)) for eval in tutor_evaluations]
+        llm_evaluations = [LLMEvaluation(**dict(eval.items())) for eval in llm_evaluations],
+        tutor_evaluations = [TutorEvaluation(**dict(eval.items())) for eval in tutor_evaluations]
     )
 
 

@@ -1,6 +1,7 @@
 from utility.OllamaConnector import generate
 from typing import List, DefaultDict
 from pydantic import BaseModel, Field
+from datetime import datetime
 import json
 import logging
 
@@ -17,6 +18,7 @@ class Evaluation(BaseModel):
     complexity: int = Field(..., ge=0, le=10)
     completeness: int = Field(..., ge=0, le=10)
     feedback: str
+    created_at: datetime = Field(..., description="The date and time when the evaluation was created")
 
 class TutorEvaluation(Evaluation):
     username: str = Field(..., description="The username of the tutor who is evaluating the project")

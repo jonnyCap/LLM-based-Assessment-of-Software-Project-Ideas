@@ -67,6 +67,7 @@ const chartData = computed(() => ({
             "username",
             "num_evaluations",
             "advanced_prompt",
+            "created_at",
           ].includes(key)
       ) // Remove unwanted fields
       .map((key) => criteriaSet[key]); // Extract values
