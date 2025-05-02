@@ -113,6 +113,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                 raise HTTPException(status_code=500, detail="Failed to generate feedback.")
 
             try:
+                logger.debug(f"Raw Ollama response for feedback: {response_feedback.json()}")
                 structured_feedback = extract_json_from_response(response_feedback.json().get("response", "{}"))
                 feedback = structured_feedback.get("feedback", "No feedback provided")
             except Exception as e:

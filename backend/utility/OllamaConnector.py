@@ -25,25 +25,38 @@ def extract_json_from_response(response_text: str) -> dict:
     """
     Attempts to extract and parse a JSON object from a string, handling common LLM response formats.
     """
+
+    response_text = response_text.strip()
+
     try:
         # Try to parse the entire response as JSON
         return json.loads(response_text)
     except json.JSONDecodeError:
         pass
 
-    # Try to extract JSON from markdown code block ```json ... ```
+    # Replace triple quotes with normal quotes (common LLM issue)
+    response_text = re.sub(r'"""(.*?)"""', lambda m: json.dumps(m.group(1)), response_text, flags=re.DOTALL)
+
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError:
+        pass
+
+    # Try extracting JSON from markdown code block ```json ... ```
     code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response_text, re.DOTALL)
     if code_block_match:
         try:
-            return json.loads(code_block_match.group(1))
+            inner = re.sub(r'"""(.*?)"""', lambda m: json.dumps(m.group(1)), code_block_match.group(1), flags=re.DOTALL)
+            return json.loads(inner)
         except json.JSONDecodeError:
             pass
 
-    # Fallback: Try to extract the first JSON-like {...} block (non-recursive)
+    # Fallback: extract the first {...} block
     brace_match = re.search(r"(\{.*?\})", response_text, re.DOTALL)
     if brace_match:
         try:
-            return json.loads(brace_match.group(1))
+            inner = re.sub(r'"""(.*?)"""', lambda m: json.dumps(m.group(1)), brace_match.group(1), flags=re.DOTALL)
+            return json.loads(inner)
         except json.JSONDecodeError:
             pass
 
