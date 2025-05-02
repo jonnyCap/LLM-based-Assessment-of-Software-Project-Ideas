@@ -79,7 +79,6 @@ async def summarize_feedback(feedback: str):
     return "Summarization failed due to an error."
 
 
-
 async def summarize_evaluations(evaluations: List[Evaluation]):
     if not evaluations:
         logger.error("There have not been any evaluations.")

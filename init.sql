@@ -1,6 +1,6 @@
 -- Create ENUM type for predefined model names
 DO $$ BEGIN
-    CREATE TYPE model_enum AS ENUM ('mistral', 'deepseek-r1', 'mixtral', 'llama3', 'phi2', 'gemma2'); -- Extend this list if needed
+    CREATE TYPE model_enum AS ENUM ('mistral', 'deepseek-r1', 'mixtral', 'llama3.1', 'phi', 'gemma3'); -- Extend this list if needed
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
