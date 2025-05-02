@@ -12,7 +12,7 @@ OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:8000")
 
 async def generate(prompt: str, model: str = "mistral"):
     try:
-        async with httpx.AsyncClient(timeout=600) as client:
+        async with httpx.AsyncClient(timeout=7200) as client:
             response = await client.post(
                 f"{OLLAMA_API_URL}/api/generate",
                 json={"model": model, "prompt": prompt, "stream": False}
