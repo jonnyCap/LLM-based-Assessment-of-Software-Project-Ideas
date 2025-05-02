@@ -42,6 +42,14 @@ def extract_json_from_response(response_text: str) -> dict:
     except json.JSONDecodeError:
         pass
 
+    # Normalize smart quotes once — early
+    response_text = response_text.replace("“", '"').replace("”", '"')
+
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError:
+        pass
+
     # Try extracting JSON from markdown code block ```json ... ```
     code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response_text, re.DOTALL)
     if code_block_match:
