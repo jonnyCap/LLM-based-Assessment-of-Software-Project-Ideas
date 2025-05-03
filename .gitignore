@@ -20,22 +20,28 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
 
 # Virtual environment
 venv/
+evaluation_venv/
 .env
 *.env
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore dependency logs or temp files
+*.log
+*.tmp
+
+# Ignore environment configuration files (optional)
+.env
 
 # FastAPI logs and database
 instance/
 *.db
 *.sqlite
-
-# IDE and editor files
-.idea/
-*.swp
-*.swo
-*.swn
 
 # Miscellaneous
 *.log

@@ -79,14 +79,25 @@ async def summarize_feedback(feedback: str):
     return "Summarization failed due to an error."
 
 
-
 async def summarize_evaluations(evaluations: List[Evaluation]):
     if not evaluations:
         logger.error("There have not been any evaluations.")
         return None  # Return None if no evaluations exist
 
     # Construct the structured prompt
-    prompt = "Below are multiple evaluations of a project. Each evaluation includes numerical ratings and feedback:\n\n"
+
+    prompt = (
+        "Based on the given evaluations below, please provide the following:\n"
+        "1. A concise and structured summary of the feedback, identifying key insights and recurring themes.\n"
+        "2. A reevaluated assessment of the project, assigning **new** scores (on a scale of 0 to 10), using previous assessments, for:\n"
+        "   - Novelty\n"
+        "   - Usefulness\n"
+        "   - Market Potential\n"
+        "   - Applicability\n"
+        "   - Complexity\n"
+        "   - Completeness\n\n"
+        "Below are multiple evaluations of a project. Each evaluation includes numerical ratings and feedback:\n\n"
+    )
 
     for i, evaluation in enumerate(evaluations, start=1):
         prompt += (
@@ -101,16 +112,7 @@ async def summarize_evaluations(evaluations: List[Evaluation]):
         )
 
     prompt += (
-        "Based on these evaluations, please provide the following:\n"
-        "1. A concise and structured summary of the feedback, identifying key insights and recurring themes.\n"
-        "2. A reevaluated assessment of the project, assigning **new** scores (on a scale of 0 to 10), using previous assessments, for:\n"
-        "   - Novelty\n"
-        "   - Usefulness\n"
-        "   - Market Potential\n"
-        "   - Applicability\n"
-        "   - Complexity\n"
-        "   - Completeness\n\n"
-        "Please return your response in the following JSON format:\n"
+        "\n\nPlease return your response in the following JSON format:\n"
         "{\n"
         '  "novelty": <new_value>,\n'
         '  "usefulness": <new_value>,\n'

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from utility.DatabaseConnector import DatabaseConnector, get_db
-from utility.OllamaConnector import generate, pull
+from utility.OllamaConnector import generate, pull, extract_json_from_response
 from pydantic import BaseModel
 import logging
 import json
@@ -82,7 +82,7 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                     raw_response = response.json()
                     logger.debug(f"Raw Ollama response for {criterion}: {raw_response}")
 
-                    structured_data = json.loads(raw_response.get("response", "{}"))
+                    structured_data = extract_json_from_response(raw_response.get("response", "{}"))
 
                     if criterion not in structured_data:
                         raise ValueError(f"Missing '{criterion}' key in LLM output.")
@@ -91,10 +91,10 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                         "score": int(structured_data.get(criterion, MIN_RATING)),
                         "justification": structured_data.get("justification", "No justification provided")
                     }
-                except json.JSONDecodeError as e:
+                except Exception as e:
                     logger.error(f"Failed to parse JSON for {criterion}: {e}")
-                    logger.error(f"Structured Data: {structured_data}")
                     raise HTTPException(status_code=500, detail=f"Invalid JSON format for {criterion}.")
+
 
                 prompt_feedback = (
                     f"Provide a single concise feedback summary for the following project idea, considering all aspects: {', '.join(criteria.keys())}.\n"
@@ -111,13 +111,15 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             response_feedback = await generate(prompt=prompt_feedback, model=evaluation_request.model)
             if response_feedback is None:
                 raise HTTPException(status_code=500, detail="Failed to generate feedback.")
-            
+
             try:
-                structured_feedback = json.loads(response_feedback.json().get("response", "{}"))
+                logger.debug(f"Raw Ollama response for feedback: {response_feedback.json()}")
+                structured_feedback = extract_json_from_response(response_feedback.json().get("response", "{}"))
                 feedback = structured_feedback.get("feedback", "No feedback provided")
-            except json.JSONDecodeError as e:
+            except Exception as e:
                 logger.error(f"Failed to parse JSON for feedback: {e}")
                 raise HTTPException(status_code=500, detail="Invalid JSON format for feedback.")
+
         
             novelty = evaluation_results["novelty"]["score"]
             usefulness = evaluation_results["usefulness"]["score"]
@@ -157,13 +159,16 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             response_data = response.json()
 
             try:
-                if isinstance(response_data["response"], str):
-                    structured_data = json.loads(response_data["response"])  # First parsing
+                raw_response = response_data["response"]
+    
+                if isinstance(raw_response, dict):
+                    structured_data = raw_response
                 else:
-                    structured_data = response_data["response"]  # Already a dict
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse JSON from response field: {e}")
-                raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response")
+                    structured_data = extract_json_from_response(raw_response)
+
+            except Exception as e:
+                logger.error(f"Failed to parse JSON from response: {e}")
+                raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response.")
     
             novelty = int(structured_data.get("novelty", MIN_RATING))
             usefulness = int(structured_data.get("usefulness", MIN_RATING))

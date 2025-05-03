@@ -1,4 +1,24 @@
 services:
+  ollama:
+    build: ./ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "curl -s http://localhost:11434/api/tags | grep -q 'mistral'",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
   backend:
     build: ./backend
     container_name: backend
@@ -12,13 +32,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OLLAMA_API_URL=http://host.docker.internal:11434
+      - OLLAMA_API_URL=http://ollama:11434
       - DB_USER=user
       - DB_PASSWORD=password
       - DB_NAME=app-db
       - DB_HOST=db
       - DB_PORT=5432
     depends_on:
+      ollama:
+        condition: service_healthy
       db:
         condition: service_healthy
 
@@ -39,7 +61,7 @@ services:
       POSTGRES_DB: app-db
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Mount the schema script
     ports:
       - "5432:5432"
     healthcheck:
