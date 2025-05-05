@@ -7,7 +7,7 @@
       <div class="popup">
         <button class="close-icon" @click="closePopup">✖</button>
 
-        <h2>Summerized Evaluation</h2>
+        <h2>Summarized Evaluation</h2>
         <!--YOU SHOULD PASS HERE NAMES FOR THE LABELS OTHERWISE IT WILL JUST BE ASSIGNMENT 1 AND ASSIGNMENT 2-->
         <template v-if="!options_chosen">
           <div>
@@ -228,6 +228,13 @@ const summerizeEvaluations = async () => {
   overflow: auto;
   width: 700px;
   height: 800px;
+}
+
+.model-dropdown {
+  padding: 7px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem !important;
 }
 
 .button {
