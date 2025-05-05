@@ -142,7 +142,11 @@ Phishntai has significant potential but requires addressing market saturation, s
 DEEPSEEK_ADVANCED_SUMMARY = EvaluationResult(6, 7, 7, 8, 6, 7, "The project idea is novel but not entirely unique. It's highly useful due to the critical need for cybersecurity training. Market potential is good, though competition is intense. The project is moderately complex and somewhat complete. Clearer requirements, data privacy measures, and scalability plans are needed.")
 
 
-MIXTRAL_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, "")
+MIXTRAL_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """1. Phishntai is a cybersecurity training platform using AI to generate phishing simulations via emails and calls with a flexible license model. It has potential due to its timely focus on practical phishing training.
+2. The project's usefulness is high, addressing the critical need for cybersecurity training. Market potential is good but competition is fierce. Applicability is high for a software project management course, requiring careful consideration of AI integration, data privacy, and reporting features.
+3. Novelty is moderate due to similar platforms existing; however, the combination of AI simulation and license-per-user model sets it apart. Completeness needs improvement, requiring more detail about platform architecture, user interface, assessment metrics, and potential integrations.
+4. Recommendations include further defining the AI engine's capabilities and limitations, establishing clear data privacy protocols, detailing reporting functionalities, and specifying technical requirements to ensure feasibility.
+5. Success hinges on simplifying user experience, demonstrating improvement in phishing recognition rates, and emphasizing unique features like sophisticated call simulations and detailed vulnerability analysis for a clear value proposition.""")
 MIXTRAL_ADVANCED_SUMMARY = EvaluationResult()
 
 GEMMA3_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """Here’s a concise summary of the feedback on the Phishntai project, categorized for clarity:
