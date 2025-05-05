@@ -64,14 +64,14 @@ def average_evaluation(evaluations: List[Evaluation]):
     )
 
 
-async def summarize_feedback(feedback: str):
+async def summarize_feedback(feedback: str, model: str):
     prompt = (
         "The following is a collection of feedback comments from multiple evaluations:\n\n"
         f"{feedback}\n\n"
         "Please provide a concise and well-structured summary of this feedback that captures the key points."
     )
 
-    response = await generate(prompt)
+    response = await generate(prompt=prompt, model=model)
     
     if response and response.status_code == 200:
         return response.json().get("response", "Summarization failed.")
@@ -79,7 +79,7 @@ async def summarize_feedback(feedback: str):
     return "Summarization failed due to an error."
 
 
-async def summarize_evaluations(evaluations: List[Evaluation]):
+async def summarize_evaluations(evaluations: List[Evaluation], model: str):
     if not evaluations:
         logger.error("There have not been any evaluations.")
         return None  # Return None if no evaluations exist
@@ -125,7 +125,7 @@ async def summarize_evaluations(evaluations: List[Evaluation]):
     )
 
     # Call the LLM to generate the summary and reevaluation
-    response = await generate(prompt)
+    response = await generate(prompt=prompt, model=model)
 
     if response and response.status_code == 200:
         try:

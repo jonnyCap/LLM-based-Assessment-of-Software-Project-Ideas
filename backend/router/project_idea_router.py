@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
-from utility.DatabaseConnector import DatabaseConnector, get_db
+from utility.DatabaseConnector import DatabaseConnector, get_db, get_models_from_db
 from utility.EvaluationSummarizer import AverageEvaluation, TutorEvaluation, LLMEvaluation, summarize_evaluations, summarize_feedback, average_evaluation
 from pydantic import BaseModel, Field
 from typing import List
-from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,6 +21,7 @@ class DeleteIdeaRequest(BaseModel):
 
 class SummaryRequest(BaseModel):
     id: int = Field(..., description="The ID of the idea to be summarized")
+    model: str = Field(..., description="The model used for evaluation")
     llm_advanced_summary_enabled: bool
     tutor_advanced_summary_enabled: bool
 
@@ -111,7 +111,11 @@ async def summarize(
         tutor_evaluations = evaluation_response.tutor_evaluations
         llm_evaluations = evaluation_response.llm_evaluations
 
-        if not tutor_evaluations:
+        available_models = await get_models_from_db(db)
+        if summary_request.model not in available_models:
+            raise HTTPException(status_code=400, detail="Invalid model")
+
+        if not tutor_evaluations or not llm_evaluations:
             raise HTTPException(status_code=400, detail="Please make at least one manual evaluation.")
 
         if not llm_evaluations:

@@ -6,12 +6,12 @@ from pydantic import BaseModel, Field
 class TutorEvaluationRequest(BaseModel):
     project_id: int = Field(..., description="The ID of the project being evaluated")
     username: str = Field(..., description="The username of the tutor who is evaluating the project")
-    novelty: int = Field(..., ge=1, le=10)
-    usefulness: int = Field(..., ge=1, le=10)
-    market_potential: int = Field(..., ge=1, le=10)
-    applicability: int = Field(..., ge=1, le=10)
-    complexity: int = Field(..., ge=1, le=10)
-    completeness: int = Field(..., ge=1, le=10)
+    novelty: int = Field(..., ge=0, le=10)
+    usefulness: int = Field(..., ge=0, le=10)
+    market_potential: int = Field(..., ge=0, le=10)
+    applicability: int = Field(..., ge=0, le=10)
+    complexity: int = Field(..., ge=0, le=10)
+    completeness: int = Field(..., ge=0, le=10)
     feedback: str = Field(..., description="Feedback for the project")
 
 router = APIRouter()

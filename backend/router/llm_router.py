@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from utility.DatabaseConnector import DatabaseConnector, get_db
+from utility.DatabaseConnector import DatabaseConnector, get_db, get_models_from_db
 from utility.OllamaConnector import generate, pull, extract_json_from_response
 from pydantic import BaseModel
 import logging
@@ -18,13 +18,6 @@ class EvaluationRequest(BaseModel):
 
 router = APIRouter()
 
-
-async def get_models_from_db(db: DatabaseConnector):
-    # TODO: Load this on startup and cache it
-    """Fetch available models from ENUM type in the database."""
-    query = "SELECT unnest(enum_range(NULL::model_enum)) AS model_name"
-    models = await db.fetch(query)
-    return [model["model_name"] for model in models]
 
 @router.get("/models")
 async def get_available_models(db: DatabaseConnector = Depends(get_db)):
