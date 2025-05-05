@@ -1,4 +1,4 @@
-from utility.OllamaConnector import generate
+from utility.OllamaConnector import generate, extract_json_from_response
 from typing import List, DefaultDict
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -72,6 +72,8 @@ async def summarize_feedback(feedback: str, model: str):
     )
 
     response = await generate(prompt=prompt, model=model)
+
+    logger.info(f"LLM Feedback Summary response: {response.json()}")
     
     if response and response.status_code == 200:
         return response.json().get("response", "Summarization failed.")
@@ -133,8 +135,7 @@ async def summarize_evaluations(evaluations: List[Evaluation], model: str):
             if "response" not in response_json:
                 raise ValueError("Missing 'response' key in LLM output.")
     
-            llm_response = response_json["response"]  # Extract the response content
-            llm_data = json.loads(llm_response)  # Parse the JSON string from LLM
+            llm_data = extract_json_from_response(response_json.get("response", {}))  # Parse the JSON string from LLM
     
             # Ensure all required keys are present, otherwise default to None
             return AverageEvaluation(

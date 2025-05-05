@@ -127,22 +127,22 @@ async def summarize(
         logger.info("Summarizing tutor-evaluations.")
         if summary_request.tutor_advanced_summary_enabled:
             logger.info("Using advanced summarization. (Tutor)")
-            tutor_summary: AverageEvaluation = await summarize_evaluations(tutor_evaluations)
+            tutor_summary: AverageEvaluation = await summarize_evaluations(tutor_evaluations, summary_request.model)
         else:
             logger.info("Using statistical summarization. (LLM)")
             tutor_summary: AverageEvaluation = average_evaluation(tutor_evaluations)
-            tutor_summary.feedback = await summarize_feedback(tutor_summary.feedback)
+            tutor_summary.feedback = await summarize_feedback(tutor_summary.feedback, summary_request.model)
 
         # Summarize the LLM evaluations
         logger.info("Summarizing llm-evaluations.")
         if summary_request.llm_advanced_summary_enabled:
             logger.info("Using advanced summarization. (LLM)")
-            llm_summary: AverageEvaluation = await summarize_evaluations(llm_evaluations)
+            llm_summary: AverageEvaluation = await summarize_evaluations(llm_evaluations, summary_request.model)
             pass
         else:
             logger.info("Using statistical summarization. (LLM)")
             llm_summary: AverageEvaluation = average_evaluation(llm_evaluations)
-            llm_summary.feedback = await summarize_feedback(llm_summary.feedback)
+            llm_summary.feedback = await summarize_feedback(llm_summary.feedback, summary_request.model)
 
         if llm_summary is None or tutor_summary is None:
             return HTTPException(status_code=500, detail="Failed to summarize evaluations")
