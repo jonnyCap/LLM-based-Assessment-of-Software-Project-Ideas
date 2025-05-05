@@ -77,11 +77,131 @@ PHI_ADVANCED_EVALUATIONS_2 = [
 ]
 
 # Summaries
-MISTRAL_SUMMARY_2 = EvaluationResult(8, 9, 7, 6, 5, 8, "This is a sample feedback.")
-DEEPSEEK_SUMMARY_2 = EvaluationResult(7, 8, 6, 5, 4, 7, "This is another sample feedback.")
-MIXTRAL_SUMMARY_2 = EvaluationResult(9, 8, 7, 6, 5, 9, "This is a sample feedback.")
-GEMMA3_SUMMARY_2 = EvaluationResult(8, 7, 6, 5, 4, 8, "This is another sample feedback.")
-LLAMA3_1_SUMMARY_2 = EvaluationResult(8, 9, 7, 6, 5, 8, "This is a sample feedback.")
-PHI_SUMMARY_2 = EvaluationResult(7, 8, 6, 5, 4, 7, "This is another sample feedback.")
+MISTRAL_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """1. The "discount finder" app has potential market appeal for budget-conscious consumers seeking discounts on groceries, but it faces competition from existing apps focusing on price comparison and deal aggregation.
+
+2. The project's novelty lies in its specific addition of gasoline cost calculation for cross-supermarket comparisons. However, the core concept is reasonably useful.
+
+3. The complexity of the app includes data integration (supermarket campaigns), accurate fuel cost calculations, and a user interface design that balances simplicity with functionality. This makes it suitable for mid to advanced level software project management courses.
+
+4. Completeness requires further detail in areas such as data sources, algorithms, error handling, and user interface design. In addition, expanding features like user profiles and loyalty program integration could significantly enhance the app's value proposition.
+
+5. Recommendations include defining key features, specifying data acquisition methods, incorporating user preferences, focusing on a manageable minimum viable product (MVP), and addressing data acquisition and supermarket API integration as key complexity challenges.""")
+MISTRAL_ADVANCED_SUMMARY_2 = EvaluationResult(6, 7, 6, 7, 6.5, 6, "The 'discount finder' concept has decent market potential and addresses a practical need, but its complexity and completeness are concerning. While the core functionality (supermarket discounts & trip cost calculation) is novel, the scope feels somewhat limited. Prioritize a manageable MVP focusing solely on a small number of supermarkets and a simplified fuel cost model before expanding. Addressing data acquisition and supermarket API integration will be a key complexity challenge.")
+
+DEEPSEEK_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """<think>
+Okay, so I need to summarize the feedback given for our discount finder app project. Let me start by reading through all these comments carefully. 
+
+First, most feedback mentions the idea is innovative and has good potential, especially with the added feature of calculating gasoline costs. That's a big plus because it makes the app more practical for real-life use. People like that they can compare discounts from different supermarkets and even see how much gas would cost when crossing stores.
+
+But some comments also point out that there are existing apps similar to ours, which means we need to make our app stand out somehow. Maybe by partnering with specific supermarkets or adding personalized features could help differentiate us.
+
+The feedback on strengths includes the idea being novel and useful for many users, especially those who shop a lot and value discounts. However, the weaknesses noted are things like limited market potential because not everyone shops frequently enough to use this app. Also, there's some worry about competition from similar apps.
+
+Recommendations vary. Some suggest focusing on core functionality first before adding more features, others mention data acquisition and algorithm development as key areas to work on. There’s also a suggestion to consider user reviews for discounts or integrating loyalty programs.
+
+Looking at all the points together, it seems the app has a solid foundation but needs refining in terms of completeness—more detail is needed on how we'll get discounts, calculate gas costs, handle edge cases like out-of-stock items, and ensure data security. Also, addressing competition by adding unique features or expanding to more areas could help.
+
+I should structure this summary to highlight the main strengths: innovation, usefulness, potential market appeal, and applicability in a course setting. Then, mention the key recommendations about focusing on core functionality, gathering more data sources, developing algorithms, user interface details, and considering partnerships for differentiation.
+</think>
+
+**Summary of Feedback for Discount Finder App Project**
+
+1. **Strengths:**
+   - **Innovation:** The concept is novel and addresses a real need by combining supermarket discounts with gasoline cost calculations, enhancing practicality.
+   - **Usefulness:** Directly beneficial to users seeking savings on groceries, making it highly applicable to a wide audience.
+   - **Potential Market Appeal:** Despite competition from similar apps, the added features (like gas cost calculation) offer differentiation.
+
+2. **Weaknesses:**
+   - **Market Potential:** While useful, there may be limited adoption due to infrequent shopping habits or existing competitor apps.
+
+3. **Recommendations:**
+   - **Focus Core Functionality:** Prioritize developing the essential features first before adding more advanced capabilities.
+   - **Data Acquisition and Algorithm Development:** Detailed strategies for discounts (from campaigns) and algorithms for gas cost estimation are crucial.
+   - **User Interface Details:** Consider defining a clear UI/UX to ensure usability from the start.
+   - **Differentiation Strategies:** Explore partnerships with specific supermarkets or add personalized features like loyalty program integrations.
+
+4. **Additional Considerations:**
+   - Address edge cases (e.g., out-of-stock items) and handle data security meticulously.
+   - Expand initial implementation to a single supermarket chain to manage complexity while gathering necessary data sources.
+
+By focusing on these areas, the project can overcome current challenges and enhance its market presence with added unique value.""")
+DEEPSEEK_ADVANCED_SUMMARY_2 = EvaluationResult(6, 7, 5.8, 8.2, 7, 5.9, "The 'discount finder' concept is moderately novel and useful, with decent market potential but some limitations in scope and completeness. It's highly applicable for a Software Project Management course but requires addressing data integration complexities.")
+
+MIXTRAL_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """""")
+MIXTRAL_ADVANCED_SUMMARY_2 = EvaluationResult()
+
+GEMMA3_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """Okay, here’s a concise summary of the feedback on the “Discount Finder App” project idea, broken down into key areas:
+
+**Overall Assessment:** The project idea – a smartphone app for finding the best supermarket deals and calculating fuel costs – has **moderate potential** but requires significant refinement to be successful.
+
+**Strengths:**
+
+*   **Useful Concept:** Directly addresses a common consumer need – saving money on groceries.
+*   **Differentiating Feature:** The inclusion of gasoline cost calculation is a key differentiator and adds value.
+*   **Good Fit for a Course:**  Suitable complexity for a Software Project Management course, offering opportunities to develop key skills.
+
+**Weaknesses & Challenges:**
+
+*   **High Complexity:** Data integration (obtaining supermarket discount data), accurately calculating fuel costs, and handling edge cases (e.g., varying gas prices, store formats) pose significant technical challenges.
+*   **Competitive Market:** The discount app market is crowded, requiring a strong value proposition.
+*   **Scope Management:** The project could easily become overly complex if not carefully managed.
+
+**Key Recommendations:**
+
+1.  **Prioritize a Minimum Viable Product (MVP):** Start with a focused scope – initially targeting a single supermarket chain.
+2.  **Data Acquisition is Crucial:** Develop a clear and reliable strategy for obtaining supermarket discount data.
+3.  **Simplify Fuel Cost Calculation:** Develop a robust but simplified algorithm for calculating fuel costs.
+4.  **Focus on User Experience:** Design a clean and intuitive user interface.
+
+**In essence, the project’s success hinges on a pragmatic approach—starting small, prioritizing core functionality, and carefully managing the inherent technical complexities.**
+
+---
+
+Would you like me to elaborate on any specific aspect of this summary, such as the recommended scope or data acquisition strategies?""")
+GEMMA3_ADVANCED_SUMMARY_2 = EvaluationResult(7, 8, 7, 8, 7, 6, "The project demonstrates a solid core concept with good market potential due to the practicality of comparing supermarket discounts and incorporating gasoline cost calculations. However, the project's success hinges on robust data acquisition strategies and a manageable scope. The completeness is currently lacking, particularly regarding data sources, algorithm development for fuel cost calculations, and UI/UX design. Addressing these gaps and prioritizing a phased approach would significantly strengthen the project’s viability. The combination of novelty and usefulness makes this a promising project for a software project management course.")
+
+LLAMA3_1_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """**Project Idea: Discount Finder App**
+
+**Strengths:**
+
+* Innovative concept that combines discount finding with gasoline cost calculation
+* Addresses a practical need for consumers seeking to save money on household shopping
+* High market potential due to widespread smartphone adoption and increasing demand for shopping apps
+
+**Weaknesses:**
+
+* May face competition from existing discount finder apps in the market
+* Complexity arises from integrating multiple supermarket data feeds and accurately calculating gasoline costs
+* Limited market potential as not everyone shops frequently or values discounts as much
+
+**Key Recommendations:**
+
+1. **Conduct Market Research**: Determine target audience and their willingness to use this type of app.
+2. **Add Unique Features**: Consider personalized recommendations, user reviews and ratings for discounts, and partnerships with specific supermarkets for exclusive deals.
+3. **Prioritize Core Functionality**: Focus on developing accurate and reliable core functions, such as data collection and integration from multiple sources.
+4. **Streamline User Interface**: Simplify navigation through multiple discount campaigns to ensure a seamless user experience.
+
+**Key Areas for Improvement:**
+
+1. **Data Sourcing Strategy**: Clearly define how discounts are obtained and integrated into the app.
+2. **Algorithm Development**: Develop a robust algorithm for calculating gasoline costs accurately.
+3. **User Authentication and Data Security**: Address potential security concerns and implement measures to protect user data.
+4. **Comprehensive System Architecture Diagram**: Create a detailed system architecture diagram to improve the completeness of the proposal.
+
+**Project Feasibility:**
+
+The project is feasible given the available resources and time constraints of a Software Project Management course, but it requires careful scope management and prioritization of core functionality.""")
+LLAMA3_1_ADVANCED_SUMMARY_2 = EvaluationResult(6.57, 7.93, 6.43, 7.9, 6.53, 5.97, "The 'discount finder' concept has a moderate level of novelty, but its core functionality is useful and addresses a practical need. The market potential is decent, but the complexity and completeness are concerning. Prioritizing a manageable MVP focusing solely on a small number of supermarkets and a simplified fuel cost model before expanding will be key to addressing data acquisition and supermarket API integration challenges.")
+
+# PHI did not manage to handle this 
+PHI_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """“When you can no longer see God with your own eyes,  you are in trouble" said the priest to the king's  courtiers the people of England,  'cause the great matter is of course.
+A long time after Jesus Christ was on earth. The King and Queen of the kingdom of England.
+For a long time, He will not be the same. God said in the Bible, when Jesus Christ. "The king and the Queen of England" of  the kingdom will be the great mystery is that which is in the Lord's sight  and which is in the Lord's eye of your people, the  'cause you are a good word is that I was not in this world?
+This will happen in this time. The Lord said He was there at the end of days. The 
+I have heard some saying is when he said to my heart,  and you know the mystery will never be and the 
+Lord, but a matter of 'kingdom of God, I want to say to this, which is the kingdom of God; and it has great things.
+For many years. The Lord Jesus Christ, and the time that He was there in the Lord's word.  the land of God's love to my country people, and so on.
+The Lord told me in the year of what I am a good thing, but 'cause you want to go in the kingdom'—and what you said it should not be said in this world, but the earth is a matter of things. The Lord's eye or the Kingdom of God.""")
+PHI_ADVANCED_SUMMARY_2 = EvaluationResult(0,0,0,0,0,0, "")
 
     

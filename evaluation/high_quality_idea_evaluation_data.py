@@ -81,11 +81,130 @@ PHI_ADVANCED_EVALUATIONS = [
 ]
 
 # Summaries
-MISTRAL_SUMMARY = EvaluationResult(8, 9, 7, 6, 5, 8, "This is a sample feedback.")
-DEEPSEEK_SUMMARY = EvaluationResult(7, 8, 6, 5, 4, 7, "This is another sample feedback.")
-MIXTRAL_SUMMARY = EvaluationResult(9, 8, 7, 6, 5, 9, "This is a sample feedback.")
-GEMMA3_SUMMARY = EvaluationResult(8, 7, 6, 5, 4, 8, "This is another sample feedback.")
-LLAMA3_1_SUMMARY = EvaluationResult(8, 9, 7, 6, 5, 8, "This is a sample feedback.")
-PHI_SUMMARY = EvaluationResult(7, 8, 6, 5, 4, 7, "This is another sample feedback.")
+MISTRAL_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """1. Project Idea: Cyber Security Training Platform (Phishntai)
+    - Novelty: Moderate; AI-generated phishing simulations with a flexible license model
+    - Usefulness: High due to growing concern around cyber threats and need for IT security skills
+    - Market Potential: Strong, but competition is fierce
+    - Applicability in Software Project Management Course: Feasible
+    - Complexity Level: Appropriate (managing AI-generated phishing simulations requires careful consideration)
+    - Completeness: Needs improvement; detailed content roadmap, technical specifications, data privacy measures, and pricing strategy are required
+    - Key Recommendations:
+        a. Prioritize user-friendly interface design
+        b. Focus initial content on high-impact phishing types
+        c. Establish clear data privacy protocols
+        d. Define monetization strategies (license model)
+        e. Provide more details on technical implementation, scalability plans, and long-term sustainability.""")
+MISTRAL_ADVANCED_SUMMARY = EvaluationResult(6.8, 8.7, 7.5, 7.7, 6.6, 6.9, "The project idea for 'Phishntai' shows strong potential due to the current demand for cybersecurity training and the growing concerns around cyber threats. The proposed system can differentiate itself through innovative phishing simulation techniques and comprehensive training materials. However, more details on technical implementation, data privacy, pricing strategy, and long-term sustainability would be helpful.")
+
+DEEPSEEK_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """<think>
+Okay, so I'm trying to wrap my head around this cyber security training platform called Phishntai. It's supposed to help people improve their IT security skills by simulating phishing attacks using AI-generated content. From what I gather from all these feedback comments, it sounds really promising but also has its challenges.
+
+First off, the idea is pretty novel because not many platforms out there are focusing on AI-driven phishing simulations. That could set Phishntai apart from competitors and make it stand out in the market. Plus, it's useful for both businesses and individuals since everyone needs to be more aware of cybersecurity threats. The market potential seems good too, especially with the increasing number of cyberattacks.
+
+But then there are some concerns. One is about market saturation—there are already a bunch of similar platforms out there. That means Phishntai might have a tough time standing out unless it really differentiates itself somehow. Also, there's a risk that not everyone will be comfortable using the platform or integrating it into their existing systems without significant effort.
+
+Another thing I noticed is that scalability and security are major issues. They need to make sure the platform can handle a lot of users without slowing down and that all data is protected from breaches. Plus, training effectiveness is crucial—just having simulations isn't enough if people aren’t picking up on the right skills. They should test it with real users to see how well it works.
+
+The feedback also mentions that Phishntai could be more specific about its features, like who gets access and what exactly they can do within the platform. It's kind of vague in some places, which might confuse people or make it harder to build a solid plan. They should probably outline clear user roles, like admin versus regular users, so everything runs smoothly.
+
+Monetization is another big area. Phishntai could charge individuals or businesses different fees based on their needs, maybe even offer a freemium model where basic features are free but premium ones require a subscription. That way, they can cater to various customer segments and make money without limiting access too much for early users.
+
+They also need to think about accessibility—how easy is it for people with disabilities to use the platform? It's important that everyone feels included and can benefit from the training. Maybe they should consider screen reader compatibility or other assistive technologies if possible.
+
+Lastly, Phishntai should focus on building a community around the platform. If users feel part of a group where they can share tips and experiences, it might make them more invested in learning and using the platform effectively. Community features like forums or social sharing could really help with engagement.
+
+Overall, while Phishntai has a lot of potential, there are several areas that need work to make it successful. They should address these challenges head-on by refining their market positioning, focusing on user needs, ensuring technical robustness, and building a strong community presence.
+</think>
+
+**Phishntai: Cyber Security Training Platform Summary**
+
+**Overview:**
+Phishntai is an innovative cyber security training platform leveraging AI-generated phishing simulations to enhance IT security awareness. It targets both businesses and individuals, offering a unique approach through its cutting-edge use of technology.
+
+**Key Strengths:**
+1. **Novelty:** Positions itself as a leader in AI-driven phishing simulations, differentiating it from existing platforms.
+2. **Usefulness:** Addresses the critical need for cybersecurity education, appealing to both organizations and individuals.
+3. **Market Potential:** High demand driven by increasing cyber threats and data privacy concerns.
+
+**Areas for Improvement:**
+1. **Market Differentiation:** Needs a clear unique selling proposition to stand out among competitors.
+2. **Scalability and Security:** Must ensure the platform can handle large userbases without performance issues and protect user data securely.
+3. **Training Effectiveness:** Requires rigorous testing with real users to validate its educational impact.
+
+**Additional Considerations:**
+1. **Specific Features:** Clarity on user roles (e.g., admin vs. regular) is essential for smooth operation.
+2. **Monetization Strategy:** Potential for a freemium model or tiered pricing based on user needs could enhance sustainability.
+3. **Accessibility:** Important to ensure the platform is inclusive, with features like screen reader compatibility.
+4. **Community Engagement:** Building a community around the platform can increase user investment and engagement.
+
+**Conclusion:**
+Phishntai has significant potential but requires addressing market saturation, scalability, security, and monetization. By focusing on these areas—differentiation, robustness, and community building—it can overcome challenges and achieve success in the cybersecurity training space.""")
+DEEPSEEK_ADVANCED_SUMMARY = EvaluationResult(6, 7, 7, 8, 6, 7, "The project idea is novel but not entirely unique. It's highly useful due to the critical need for cybersecurity training. Market potential is good, though competition is intense. The project is moderately complex and somewhat complete. Clearer requirements, data privacy measures, and scalability plans are needed.")
+
+
+MIXTRAL_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, "")
+MIXTRAL_ADVANCED_SUMMARY = EvaluationResult()
+
+GEMMA3_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """Here’s a concise summary of the feedback on the Phishntai project, categorized for clarity:
+
+**Overall Assessment:** The project – a cyber security training platform leveraging AI-generated phishing simulations – has strong potential due to high current demand and a flexible licensing model. However, successful execution hinges on addressing key complexities.
+
+**Strengths:**
+
+*   **High Potential:**  The core concept is relevant and timely, addressing a critical need for improved cybersecurity awareness.
+*   **Flexibility:** The license-based model offers a distinct advantage.
+*   **Relevance:** AI-driven simulations are a modern and effective approach.
+
+
+**Key Challenges & Areas for Improvement:**
+
+*   **Complexity:**  Significant technical effort is required, particularly around developing and maintaining the AI simulation engine and ensuring it’s robust against potential misuse.
+*   **Content & Accuracy:** The quality of training materials and the realism of the phishing simulations are paramount; these require significant development and ongoing refinement.
+*   **Data Privacy & Security:** Robust data privacy protocols and security measures are *essential* given the nature of the simulations.
+*   **User Experience:** A user-friendly interface and clear evaluation metrics are crucial for engagement and effectiveness.
+
+**Recommendations:**
+
+*   **Prioritize AI Engine Development:** Focus on creating a credible and adaptable simulation engine.
+*   **Detailed Content Roadmap:**  Establish a well-defined training curriculum with diverse phishing scenarios.
+*   **Security First:** Implement rigorous data privacy and security controls.
+
+
+
+**In essence, Phishntai’s success depends on a balanced approach – prioritizing technical rigor alongside a user-centric design and unwavering commitment to data security.** 
+
+---
+
+Would you like me to elaborate on any specific aspect of this summary, such as highlighting particular recommendations or focusing on a specific challenge?""")
+GEMMA3_ADVANCED_SUMMARY = EvaluationResult(7.5, 9.5, 8.5, 9.5, 7.5, 8,"The feedback consistently highlights the high usefulness and strong market potential of Phishntai due to its innovative approach using AI-generated phishing simulations. Applicability within a software project management course is excellent.  Completeness is very good, but the feedback emphasizes the need for more detailed specifications regarding the AI engine’s capabilities, data privacy measures, user management features, scalability plans, and a clearer implementation plan. Several evaluations suggested the complexity level is appropriate for the course while noting the management of AI-generated simulations and robust data privacy require careful consideration.")
+
+LLAMA3_1_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """**Summary of Feedback for Phishntai Project**
+
+The Phishntai project has received positive feedback from reviewers, highlighting its potential as a novel solution to combat phishing attacks through AI-generated simulations. Here are the key points:
+
+**Strengths:**
+
+1. **Usefulness**: The platform is deemed highly useful in enhancing IT security skills, particularly in combating phishing attacks.
+2. **Applicability**: The project's scope aligns with software project management courses, offering opportunities for managing requirements, resources, risks, and stakeholders.
+3. **Market potential**: The growing concern around data protection and IT security suggests a strong market potential for the platform.
+
+**Weaknesses:**
+
+1. **Novelty**: While the project is considered novel, some reviewers note that similar solutions exist, although the inclusion of AI-generated simulations adds a modern element.
+2. **Complexity**: Execution complexity is high due to requiring significant AI development and robust evaluation metrics.
+3. **Completeness**: The proposal lacks specifics on training content depth, integration with existing security tools, and technical implementation details.
+
+**Recommendations:**
+
+1. **Simplify user experience**: Prioritize a user-friendly interface design and focus initial content on high-impact phishing types.
+2. **Define monetization strategy**: Clearly define the license model and pricing strategy to ensure successful monetization.
+3. **Provide more details**: Include more information on technical implementation, data privacy measures, user management features, scalability plans, and long-term sustainability.
+
+Overall, the Phishntai project has strong potential, but requires further refinement to address complexity, completeness, and market competition.""")
+LLAMA3_1_ADVANCED_SUMMARY = EvaluationResult(6.55, 8.43, 7.63, 7.87, 7.23, 5.93, "Phishntai is a reasonably solid idea with good potential for a software project management course, addressing the growing need for cybersecurity training and incorporating AI-generated phishing simulations. However, execution complexity is high, requiring significant AI development and robust evaluation metrics. Market potential is excellent, but competition is fierce; emphasizing unique features and a clear value proposition are crucial for success. Completeness needs improvement - the proposal lacks specifics on training content depth and integration with existing security tools.")
+
+# In 10 runs each, phi did not produce any proper JSON output
+PHI_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, " <br />This can be achieved by using the appropriate adjective agreement")
+PHI_ADVANCED_SUMMARY = EvaluationResult(0, 0, 0, 0, 0, 0, "")
 
     
