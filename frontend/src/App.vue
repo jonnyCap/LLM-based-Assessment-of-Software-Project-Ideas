@@ -22,6 +22,7 @@
         <EvaluationSummarizer
           :id="selectedGroup?.id"
           :disabled="!selectedGroup || selectedGroup === undefined"
+          :models="availableModels"
         />
       </div>
 

@@ -30,6 +30,12 @@
               density="compact"
             ></v-checkbox>
 
+            <select v-model="selectedModel" class="model-dropdown">
+              <option v-for="model in models" :key="model" :value="model">
+                {{ model }}
+              </option>
+            </select>
+
             <BasicButton @click="summerizeEvaluations" class="button"
               >Summarize</BasicButton
             >
@@ -68,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted, computed } from "vue";
+import { ref, defineProps, watch, computed } from "vue";
 import BasicButton from "./Buttons/BasicButton.vue";
 import AssessmentChart from "./AssessmentChart.vue";
 import CriteriaEvaluation from "./CriteriaEvaluation.vue";
@@ -79,6 +85,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  models: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -101,6 +111,19 @@ const labels = computed(() => {
     `Tutor summary (${num_tutor_evaluations.value} evals.)`,
   ];
 });
+
+const selectedModel = ref(null);
+
+// Set default selected model when models are available
+watch(
+  () => props.models,
+  (newModels) => {
+    if (newModels.length > 0 && !selectedModel.value) {
+      selectedModel.value = newModels[0];
+    }
+  },
+  { immediate: true }
+);
 
 // For cancelling requests
 let cancelTokenSource = null;
@@ -139,6 +162,7 @@ const summerizeEvaluations = async () => {
         id: parseInt(props.id, 10),
         llm_advanced_summary_enabled: advanced_llm_summary_enabled.value,
         tutor_advanced_summary_enabled: advanced_tutor_summary_enabled.value,
+        model: selectedModel.value,
       },
       { cancelToken: cancelTokenSource.token }
     );

@@ -23,7 +23,7 @@
             type="number"
             :id="key"
             v-model.number="evaluation[key]"
-            min="1"
+            min="0"
             max="10"
           />
         </div>
@@ -64,12 +64,12 @@ const emit = defineEmits(["evaluationSuccess"]);
 const username = ref("");
 const isPopupOpen = ref(false);
 const evaluation = ref({
-  novelty: 1,
-  usefulness: 1,
-  market_potential: 1,
-  applicability: 1,
-  complexity: 1,
-  completeness: 1,
+  novelty: 0,
+  usefulness: 0,
+  market_potential: 0,
+  applicability: 0,
+  complexity: 0,
+  completeness: 0,
 });
 const feedback = ref("");
 
