@@ -40,5 +40,13 @@ class DatabaseConnector:
             return await connection.execute(query, *args)
 
 
+async def get_models_from_db(db: DatabaseConnector):
+    # TODO: Load this on startup and cache it
+    """Fetch available models from ENUM type in the database."""
+    query = "SELECT unnest(enum_range(NULL::model_enum)) AS model_name"
+    models = await db.fetch(query)
+    return [model["model_name"] for model in models]
+
+
 async def get_db(request: Request) -> DatabaseConnector:
     return request.app.state.db_connector
