@@ -147,7 +147,7 @@ MIXTRAL_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.4848
 3. Novelty is moderate due to similar platforms existing; however, the combination of AI simulation and license-per-user model sets it apart. Completeness needs improvement, requiring more detail about platform architecture, user interface, assessment metrics, and potential integrations.
 4. Recommendations include further defining the AI engine's capabilities and limitations, establishing clear data privacy protocols, detailing reporting functionalities, and specifying technical requirements to ensure feasibility.
 5. Success hinges on simplifying user experience, demonstrating improvement in phishing recognition rates, and emphasizing unique features like sophisticated call simulations and detailed vulnerability analysis for a clear value proposition.""")
-MIXTRAL_ADVANCED_SUMMARY = EvaluationResult()
+MIXTRAL_ADVANCED_SUMMARY = EvaluationResult(6.5, 8.3, 7.5, 7.6, 7, 6.2, "Phishntai is a project for a cyber security training platform that uses AI-generated phishing simulations. Its novelty and usefulness are high, but market potential and applicability could be improved with more unique features and clearer value proposition. The complexity is moderate due to the need for robust AI development and accurate user evaluation. Completeness is lacking in areas such as technical specifications, content depth, and integration with existing security tools.")
 
 GEMMA3_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, """Here’s a concise summary of the feedback on the Phishntai project, categorized for clarity:
 

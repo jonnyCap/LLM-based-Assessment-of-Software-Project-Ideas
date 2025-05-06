@@ -127,8 +127,18 @@ I should structure this summary to highlight the main strengths: innovation, use
 By focusing on these areas, the project can overcome current challenges and enhance its market presence with added unique value.""")
 DEEPSEEK_ADVANCED_SUMMARY_2 = EvaluationResult(6, 7, 5.8, 8.2, 7, 5.9, "The 'discount finder' concept is moderately novel and useful, with decent market potential but some limitations in scope and completeness. It's highly applicable for a Software Project Management course but requires addressing data integration complexities.")
 
-MIXTRAL_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """""")
-MIXTRAL_ADVANCED_SUMMARY_2 = EvaluationResult()
+MIXTRAL_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """1. The discount finder app is a novel concept that can help users save money while shopping by providing them with discounted products from various supermarkets and calculating additional gasoline costs for cross-supermarket purchases.
+2. Strengths: The project is innovative, has potential usefulness for many individuals, and could generate revenue through partnerships with supermarket chains.
+3. Weaknesses: There may be limited market potential as not everyone shops frequently or values discounts as much. Additionally, other similar apps already exist, making it difficult for the project to stand out in a crowded market.
+4. Recommendations: Conduct market research to determine the target audience and their willingness to use this type of app. Consider adding unique features such as personalized recommendations based on user's shopping history or partnering with specific supermarkets to create exclusive deals. Ensure that the app is easy to use and navigate for a positive user experience.
+5. Complexity: The project has moderate to high complexity due to data acquisition and integration from multiple sources, accuracy of gasoline cost calculations, and real-time updates on discounts.
+6. Completeness: While the idea is well-structured, further detail is needed on data sources, algorithm for calculating optimal routes and costs, error handling, user interface design, and potential edge cases (e.g., variable gas prices, different supermarket brands).
+7. Applicability: The project is suitable for a Software Project Management course, providing opportunities to cover requirements gathering, data integration, UI/UX design, testing, and potentially location services.
+8. Usefulness: The app directly addresses a common consumer problem – saving money on groceries.
+9. Market potential: The grocery discount app market is competitive, but the project has the potential to appeal to a wide market if executed well.
+
+In summary, the discount finder app is a promising concept that could help users save money while shopping. However, it requires careful planning and execution, including market research, data acquisition strategies, accurate gasoline cost calculations, user interface design, and error handling. The project has potential for success in the competitive grocery discount app market if executed well.""")
+MIXTRAL_ADVANCED_SUMMARY_2 = EvaluationResult(6, 7, 6, 8, 7, 5, "The 'discount finder' concept has decent market potential and addresses a practical need. However, the complexity and completeness are concerning. While the core functionality is novel, the scope feels limited. Prioritize a manageable MVP focusing on a small number of supermarkets and a simplified fuel cost model before expanding. Addressing data acquisition and supermarket API integration will be key challenges.")
 
 GEMMA3_SUMMARY_2 = EvaluationResult(5.818181818181818, 7.848484848484849, 6.636363636363637, 7.9393939393939394, 5.9393939393939394, 6.484848484848484, """Okay, here’s a concise summary of the feedback on the “Discount Finder App” project idea, broken down into key areas:
 
