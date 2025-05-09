@@ -34,7 +34,7 @@ MIXTRAL_EVALUATIONS_2 = [
 ]
 
 MIXTRAL_ADVANCED_EVALUATIONS_2 = [
-    EvaluationResult(5, 8, 7, 8, 7, 6, "The project idea of a 'discount finder' app that compiles discounted products from various supermarkets is innovative and has high market potential. Its usefulness for consumers aiming to save on household shopping is clear. The additional feature of calculating gasoline costs to determine the worthiness of visiting distant supermarkets adds value to its applicability. However, consider investigating methods to simplify the complexity of integrating data from multiple supermarkets and ensure complete accuracy in discounts and fuel cost calculations for optimal user experience."),
+    # EvaluationResult(5, 8, 7, 8, 7, 6, "The project idea of a 'discount finder' app that compiles discounted products from various supermarkets is innovative and has high market potential. Its usefulness for consumers aiming to save on household shopping is clear. The additional feature of calculating gasoline costs to determine the worthiness of visiting distant supermarkets adds value to its applicability. However, consider investigating methods to simplify the complexity of integrating data from multiple supermarkets and ensure complete accuracy in discounts and fuel cost calculations for optimal user experience."),
 ]
 
 # GEMMA3
