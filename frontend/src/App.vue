@@ -19,11 +19,17 @@
     <div class="right-side">
       <div class="assessment-header">
         <h3>LLM-based Assessment</h3>
-        <EvaluationSummarizer
-          :id="selectedGroup?.id"
-          :disabled="!selectedGroup || selectedGroup === undefined"
-          :models="availableModels"
-        />
+        <div class="top-level-buttons">
+          <QuickEvaluator
+            :id="selectedGroup?.id"
+            :disabled="!selectedGroup || selectedGroup === undefined"
+          />
+          <EvaluationSummarizer
+            :id="selectedGroup?.id"
+            :disabled="!selectedGroup || selectedGroup === undefined"
+            :models="availableModels"
+          />
+        </div>
       </div>
 
       <template v-if="selectedGroup">
@@ -116,6 +122,7 @@ import LLMEvaluationButton from "./components/LLMEvaluationButton.vue";
 import MultiSelectDropdown from "./components/MutliSelectDropdown.vue";
 import axios from "axios";
 import EvaluationSummarizer from "./components/EvaluationSummarizer.vue";
+import QuickEvaluator from "./components/QuickEvaluator.vue";
 
 const groups = ref([]);
 const tutorEvaluations = ref([]);
@@ -323,5 +330,10 @@ const handleItemClick = async (group) => {
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+.top-level-buttons {
+  display: flex;
+  justify-content: space-between;
+  min-width: 200px;
 }
 </style>
