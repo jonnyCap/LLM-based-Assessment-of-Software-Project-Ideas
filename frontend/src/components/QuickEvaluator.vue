@@ -1,7 +1,8 @@
 <template>
   <div>
-    <BasicButton @click="handleQuickEval" :disabled="disabled"
-      >Quick Eval.</BasicButton
+    <BasicButton @click="handleQuickEval" :disabled="disabled || loading">
+      <span v-if="loading" class="loader"></span>
+      <template v-else>Quick Eval.</template></BasicButton
     >
     <div v-if="isPopupOpen" class="popup-overlay">
       <div class="popup">
@@ -18,8 +19,8 @@
         </template>
         <template v-else>
           <DownloadButton :jsonData="quick_eval" />
-          <AssessmentChart :criteria="[quick_eval]" :labels="labels" />
-          <CriteriaEvaluation :criteria="[quick]" :labels="labels" />
+          <AssessmentChart :criteria="[quick_eval]" />
+          <CriteriaEvaluation :criteria="[quick_eval]" />
         </template>
       </div>
     </div>
@@ -55,12 +56,15 @@ const handleQuickEval = async (quickEval) => {
 
     const response = await axios.post("/api/icl2025/quick_eval", {
       id: parseInt(props.id, 10),
-      is_async: true,
+      is_async: false,
     });
 
     if (response.status === 200) {
       console.log("Got result: ", response.data);
-      quick_eval.value = response.data.quick_eval;
+      error.value = null;
+      quick_eval.value = response.data;
+
+      //TODO: Update llm evalutions
     } else {
       console.error("Failed to submit evaluation:", response.data);
       error.value =
@@ -84,6 +88,7 @@ const openPopup = () => {
 };
 
 const closePopup = () => {
+  console.log("Closing popup");
   isPopupOpen.value = false;
 };
 </script>
