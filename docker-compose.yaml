@@ -19,6 +19,10 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - API_KEY=${API_KEY}
+      - TEMPERATURE=0.7
+      - MAX_TOKENS=1024
+      - ASYNC_REQUEST=false
+      - MAX_RETRIES=3
     depends_on:
       db:
         condition: service_healthy

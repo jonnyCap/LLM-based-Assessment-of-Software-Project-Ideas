@@ -1,6 +1,10 @@
 <template>
   <div>
-    <BasicButton @click="handleQuickEval" :disabled="disabled || loading">
+    <BasicButton
+      style="min-width: 100px"
+      @click="handleQuickEval"
+      :disabled="disabled || loading"
+    >
       <span v-if="loading" class="loader"></span>
       <template v-else>Quick Eval.</template></BasicButton
     >
@@ -49,14 +53,14 @@ const error = ref(null);
 
 const quick_eval = ref({});
 
+const emit = defineEmits(["evaluationSuccess"]);
+
 const handleQuickEval = async (quickEval) => {
-  //TODO: Make backend request
   try {
     loading.value = true;
 
     const response = await axios.post("/api/icl2025/quick_eval", {
       id: parseInt(props.id, 10),
-      is_async: false,
     });
 
     if (response.status === 200) {
@@ -64,7 +68,8 @@ const handleQuickEval = async (quickEval) => {
       error.value = null;
       quick_eval.value = response.data;
 
-      //TODO: Update llm evalutions
+      // Update llm evalutions
+      emit("evaluationSuccess");
     } else {
       console.error("Failed to submit evaluation:", response.data);
       error.value =

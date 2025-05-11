@@ -26,6 +26,13 @@ class TutorEvaluation(Evaluation):
 class LLMEvaluation(Evaluation):
     model: str = Field(..., description="The name of the LLM model used for evaluation")
     advanced_prompt: bool
+    novelty_justification: str = Field(..., description="Justification for the novelty score")
+    usefulness_justification: str = Field(..., description="Justification for the usefulness score")
+    market_potential_justification: str = Field(..., description="Justification for the market potential score")
+    applicability_justification: str = Field(..., description="Justification for the applicability score")
+    complexity_justification: str = Field(..., description="Justification for the complexity score")
+    completeness_justification: str = Field(..., description="Justification for the completeness score")
+    
 
 class AverageEvaluation(BaseModel):
     num_evaluations: int

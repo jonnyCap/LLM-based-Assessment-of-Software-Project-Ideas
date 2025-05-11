@@ -23,6 +23,7 @@
           <QuickEvaluator
             :id="selectedGroup?.id"
             :disabled="!selectedGroup || selectedGroup === undefined"
+            @evaluationSuccess="() => handleItemClick(selectedGroup)"
           />
           <EvaluationSummarizer
             :id="selectedGroup?.id"
