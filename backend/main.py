@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from router.llm_router import router as llm_router
 from router.tutor_router import router as tutor_router
 from router.project_idea_router import router as project_idea_router
+from router.icl2025_router import router as icl2025_router
 from utility.DatabaseConnector import DatabaseConnector, DATABASE_URL
 from contextlib import asynccontextmanager
 import logging
@@ -35,3 +36,4 @@ app.add_middleware(
 app.include_router(llm_router, prefix="/api/llm", tags=["llm"])
 app.include_router(tutor_router, prefix="/api/tutor", tags=["tutor"])
 app.include_router(project_idea_router, prefix="/api/project-idea", tags=["project-idea"])
+app.include_router(icl2025_router, prefix="/api/icl2025", tags=["icl2025"])
