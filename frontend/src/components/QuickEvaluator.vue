@@ -22,9 +22,9 @@
           </div>
         </template>
         <template v-else>
-          <DownloadButton :jsonData="quick_eval" />
-          <AssessmentChart :criteria="[quick_eval]" />
-          <CriteriaEvaluation :criteria="[quick_eval]" />
+          <DownloadButton :jsonData="[...pre_evaluations, quick_eval]" />
+          <AssessmentChart :criteria="[quick_eval, ...pre_evaluations]" />
+          <CriteriaEvaluation :criteria="[quick_eval, ...pre_evaluations]" />
         </template>
       </div>
     </div>
@@ -52,6 +52,7 @@ const loading = ref(false);
 const error = ref(null);
 
 const quick_eval = ref({});
+const pre_evaluations = ref([]);
 
 const emit = defineEmits(["evaluationSuccess"]);
 
@@ -66,7 +67,8 @@ const handleQuickEval = async (quickEval) => {
     if (response.status === 200) {
       console.log("Got result: ", response.data);
       error.value = null;
-      quick_eval.value = response.data;
+      quick_eval.value = response.data.quick_eval;
+      pre_evaluations.value = response.data.evaluations;
 
       // Update llm evalutions
       emit("evaluationSuccess");

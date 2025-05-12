@@ -5,19 +5,40 @@
 <script setup>
 import { defineProps } from "vue";
 import BasicButton from "./BasicButton.vue";
+import axios from "axios";
 
 const props = defineProps({
   jsonData: {
-    type: Object,
+    type: [Object, Array],
     required: true,
   },
 });
 
-function downloadCSV() {
-  const data = props.jsonData;
+async function fetchProjectDescription(projectId) {
+  try {
+    const response = await axios.get(`/api/project-idea/get-idea/${projectId}`);
+    return response.data.description;
+  } catch (error) {
+    console.error(
+      `Failed to fetch description for project ${projectId}:`,
+      error
+    );
+    return ""; // Fallback or throw if preferred
+  }
+}
+
+async function downloadCSV() {
+  const dataArray = Array.isArray(props.jsonData)
+    ? props.jsonData.slice(0, 5)
+    : [props.jsonData];
+
+  const projectId = dataArray[0]?.project_id;
+  const description = await fetchProjectDescription(projectId); // Fetch once
 
   const headers = [
     "ID",
+    "Model",
+    "Project Description",
     "Novelty (Score)",
     "Novelty (Rationale)",
     "Usefulness (Score)",
@@ -33,24 +54,30 @@ function downloadCSV() {
     "General Feedback",
   ];
 
-  const values = [
-    data.project_id, // renamed to "ID"" in CSV
-    data.novelty,
-    data.novelty_justification,
-    data.usefulness,
-    data.usefulness_justification,
-    data.market_potential,
-    data.market_potential_justification,
-    data.applicability,
-    data.applicability_justification,
-    data.complexity,
-    data.complexity_justification,
-    data.completeness,
-    data.completeness_justification,
-    data.feedback,
-  ].map((val) => JSON.stringify(val ?? ""));
+  const rows = dataArray.map((data) => {
+    const values = [
+      data.project_id,
+      data.model,
+      description, // same for all rows
+      data.novelty,
+      data.novelty_justification,
+      data.usefulness,
+      data.usefulness_justification,
+      data.market_potential,
+      data.market_potential_justification,
+      data.applicability,
+      data.applicability_justification,
+      data.complexity,
+      data.complexity_justification,
+      data.completeness,
+      data.completeness_justification,
+      data.feedback,
+    ];
 
-  const csvContent = headers.join(",") + "\n" + values.join(",");
+    return values.map((val) => JSON.stringify(val ?? "")).join(",");
+  });
+
+  const csvContent = headers.join(",") + "\n" + rows.join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
