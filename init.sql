@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS project_descriptions (
 CREATE TABLE IF NOT EXISTS llm_evaluations (
     id SERIAL PRIMARY KEY,
     project_id INT NOT NULL,
-    model model_enum NOT NULL, -- Model name stored as ENUM
+    model TEXT NOT NULL,
     novelty INT CHECK (novelty BETWEEN 0 AND 10),
     novelty_justification TEXT DEFAULT '',
     usefulness INT CHECK (usefulness BETWEEN 0 AND 10),
