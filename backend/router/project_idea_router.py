@@ -49,6 +49,25 @@ async def get_ideas(db: DatabaseConnector = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/get-idea/{id}", response_model=IdeaResponse)
+async def get_idea(id: int, db: DatabaseConnector = Depends(get_db)):
+    try:
+        query = "SELECT id, description FROM project_descriptions WHERE id = $1"
+        results = await db.fetch(query, id)
+
+        if not results:
+            raise HTTPException(status_code=404, detail="Idea not found")
+
+        idea = results[0]  # your method returns a list
+        if not idea:
+            raise HTTPException(status_code=404, detail="Idea not found")
+
+        return IdeaResponse(id=idea["id"], description=idea["description"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/add-ideas")
 async def add_ideas(idea_request: AddIdeaRequest, db: DatabaseConnector = Depends(get_db)):
     try:

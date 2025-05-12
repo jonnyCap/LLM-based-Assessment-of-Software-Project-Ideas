@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from router.icl2025_router import EVALUATION_MODELS, SUMMARIZER_MODEL
 from utility.DatabaseConnector import DatabaseConnector, get_db, get_models_from_db
 from utility.OllamaConnector import generate, pull, extract_json_from_response
 from pydantic import BaseModel
@@ -21,7 +22,11 @@ router = APIRouter()
 
 @router.get("/models")
 async def get_available_models(db: DatabaseConnector = Depends(get_db)):
-    return await get_models_from_db(db)
+    models = await get_models_from_db(db)
+    # Merge EVALUATION_MODELS and models into a single list
+    merged_models = EVALUATION_MODELS + models + [SUMMARIZER_MODEL]
+    return merged_models
+
 
 @router.post("/evaluate")
 async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector = Depends(get_db)):

@@ -1,3 +1,4 @@
+from utility.EvaluationSummarizer import LLMEvaluation
 from fastapi import Request
 from typing import Optional
 import asyncpg
@@ -38,6 +39,47 @@ class DatabaseConnector:
     async def execute(self, query: str, *args):
         async with self.pool.acquire() as connection:
             return await connection.execute(query, *args)
+
+async def store_evaluation(db: DatabaseConnector, project_id: int,  evaluation: LLMEvaluation):
+    await db.execute("""
+        INSERT INTO llm_evaluations (
+            project_id, 
+            model,
+            novelty,
+            novelty_justification,
+            usefulness,
+            usefulness_justification,
+            market_potential,
+            market_potential_justification,
+            applicability,
+            applicability_justification,
+            complexity,
+            complexity_justification,
+            completeness,
+            completeness_justification,
+            feedback,
+            advanced_prompt)
+        VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8,
+            $9, $10, $11, $12, $13, $14, $15, $16
+        );
+    """, 
+    project_id,
+    evaluation.model,
+    evaluation.novelty,
+    evaluation.novelty_justification,
+    evaluation.usefulness,
+    evaluation.usefulness_justification,
+    evaluation.market_potential,
+    evaluation.market_potential_justification,
+    evaluation.applicability,
+    evaluation.applicability_justification,
+    evaluation.complexity,
+    evaluation.complexity_justification,
+    evaluation.completeness,
+    evaluation.completeness_justification,
+    evaluation.feedback,
+    False)
 
 
 async def get_models_from_db(db: DatabaseConnector):

@@ -26,6 +26,27 @@ def extract_json_from_response(response_text: str) -> dict:
     Attempts to extract and parse a JSON object from a string, handling common LLM response formats.
     """
 
+    try:
+        return json.loads(response_text)
+    except json.JSONDecodeError:
+        pass
+
+    # Try extracting from markdown block
+    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response_text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except json.JSONDecodeError:
+            pass
+
+    # Try extracting first {...}
+    match = re.search(r"(\{.*?\})", response_text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except json.JSONDecodeError:
+            pass
+
     response_text = response_text.strip()
 
     try:

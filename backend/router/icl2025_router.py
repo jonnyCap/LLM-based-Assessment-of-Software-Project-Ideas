@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from utility.DatabaseConnector import DatabaseConnector, get_db
+from utility.DatabaseConnector import DatabaseConnector, get_db, store_evaluation
 from utility.OllamaConnector import generate, extract_json_from_response
 from utility.EvaluationSummarizer import LLMEvaluation
 from pydantic import BaseModel
 from openai import OpenAI
 from datetime import datetime
+from typing import List
 import asyncio
 import logging
 import os
@@ -26,7 +27,13 @@ logger.setLevel(logging.DEBUG)
 class ICLEvaluationRequest(BaseModel):
     id: int
 
+class ICLEvaluationResponse(BaseModel):
+    quick_eval: LLMEvaluation
+    evaluations: List[LLMEvaluation]
+
+
 EVALUATION_MODELS = ['mistral:7b-instruct', 'llama3.2:3b', 'deepseek-r1:8b', 'qwen3']
+SUMMARIZER_MODEL = 'Meta-Llama-3-70B-Instruct'
 
 @router.post("/quick_eval")
 async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
@@ -93,7 +100,7 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
                 structured_data["advanced_prompt"] = False
 
                 evaluation = LLMEvaluation(**structured_data)
-                return {"model": model, "evaluation": evaluation}
+                return evaluation
 
             except Exception as e:
                 logger.warning(f"Attempt {attempt} for model {model} failed: {e}")
@@ -104,61 +111,18 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
 
     # Concurrent or sequential execution
     if ASYNC_REQUEST:
-        evaluations = await asyncio.gather(*[evaluate_model(model) for model in EVALUATION_MODELS])
+        evaluations: List[LLMEvaluation] = await asyncio.gather(*[evaluate_model(model) for model in EVALUATION_MODELS])
     else:
-        evaluations = []
+        evaluations: List[LLMEvaluation] = []
         for model in EVALUATION_MODELS:
             result = await evaluate_model(model)
             evaluations.append(result)
 
+    # Log the evaluation array with all its entries
+    logger.info(f"Evaluations: {evaluations}")
     # --- Store evaluations in the database ---
-    for entry in evaluations:
-        if "error" in entry:
-            raise HTTPException(status_code=500, detail=f"Error in model {entry['model']}: {entry['error']}")
-
-        model = entry["model"]
-        evaluation = entry["evaluation"]
-
-        await db.execute("""
-            INSERT INTO llm_evaluations (
-                project_id, 
-                model,
-                novelty,
-                novelty_justification,
-                usefulness,
-                usefulness_justification,
-                market_potential,
-                market_potential_justification,
-                applicability,
-                applicability_justification,
-                complexity,
-                complexity_justification,
-                completeness,
-                completeness_justification,
-                feedback,
-                advanced_prompt)
-            VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8,
-                $9, $10, $11, $12, $13, $14, $15, $16
-            );
-        """, 
-        project_id,
-        model,
-        evaluation.novelty,
-        evaluation.novelty_justification,
-        evaluation.usefulness,
-        evaluation.usefulness_justification,
-        evaluation.market_potential,
-        evaluation.market_potential_justification,
-        evaluation.applicability,
-        evaluation.applicability_justification,
-        evaluation.complexity,
-        evaluation.complexity_justification,
-        evaluation.completeness,
-        evaluation.completeness_justification,
-        evaluation.feedback,
-        False)
-
+    for evaluation in evaluations:
+        await store_evaluation(db, project_id, evaluation)
 
     # --- Summarize results ---
     client = OpenAI(api_key=API_KEY, base_url="https://api.hyperbolic.xyz/v1")
@@ -213,11 +177,14 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
             # Append necessary data
             structured_data["id"] = 0
             structured_data["project_id"] = project_id
-            structured_data["model"] = 'Meta-Llama-3-70B-Instruct'
+            structured_data["model"] = SUMMARIZER_MODEL
             structured_data["created_at"] = datetime.now()
             structured_data["advanced_prompt"] = False
 
             evaluation = LLMEvaluation(**structured_data)
+
+            # Store the summarized evaluation in the database
+            await store_evaluation(db, project_id, evaluation)
 
             break
         except Exception as e:
@@ -230,4 +197,4 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
     if evaluation is None:
         raise HTTPException(status_code=500, detail="Failed to summarize the evaluations.")
 
-    return evaluation
+    return ICLEvaluationResponse(quick_eval=evaluation, evaluations=evaluations)
