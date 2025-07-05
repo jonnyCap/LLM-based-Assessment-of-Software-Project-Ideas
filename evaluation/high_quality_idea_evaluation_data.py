@@ -209,7 +209,7 @@ LLAMA3_1_ADVANCED_SUMMARY = EvaluationResult(6.55, 8.43, 7.63, 7.87, 7.23, 5.93,
 
 # In 10 runs each, phi did not produce any proper JSON output
 PHI_SUMMARY = EvaluationResult(6.7272727272727275, 8.515151515151516, 7.484848484848484, 8.181818181818182, 6.545454545454546, 6.96969696969697, " <br />This can be achieved by using the appropriate adjective agreement")
-PHI_ADVANCED_SUMMARY = EvaluationResult(None, None, None, None, None, None, "")
+PHI_ADVANCED_SUMMARY = EvaluationResult(0,0,0,0,0,0, "")
 
 
     
