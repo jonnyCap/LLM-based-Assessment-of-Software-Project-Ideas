@@ -89,6 +89,18 @@ def extract_json_from_response(response_text: str) -> dict:
         except json.JSONDecodeError:
             pass
 
+    # If the response_text does not end with a closing brace, add it
+    if not response_text.endswith("}"):
+        response_text += "}"
+        brace_match = re.search(r"(\{.*?\})", response_text, re.DOTALL)
+        if brace_match:
+            try:
+                inner = re.sub(r'"""(.*?)"""', lambda m: json.dumps(m.group(1)), brace_match.group(1), flags=re.DOTALL)
+                return json.loads(inner)
+            except json.JSONDecodeError:
+                pass
+
+
     # If all else fails
     raise ValueError("Failed to extract valid JSON from response.")
 
