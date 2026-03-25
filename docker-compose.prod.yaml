@@ -1,0 +1,67 @@
+services:
+  backend:
+    build: ./backend
+    container_name: backend_pm_idea
+    restart: unless-stopped
+    entrypoint: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      - OLLAMA_API_URL=${OLLAMA_API_URL:-http://100.78.4.119:11434}
+      - DB_USER=${DB_USER:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DB_NAME=${DB_NAME:-app-db}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - ASYNC_REQUEST=${ASYNC_REQUEST:-false}
+      - MAX_RETRIES=${MAX_RETRIES:-3}
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks:
+      - internal
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_pm_idea
+    restart: unless-stopped
+    depends_on:
+      - backend
+    expose:
+      - "80"
+    networks:
+      internal:
+      proxy:
+        aliases:
+          - frontend_pm_idea
+
+  db:
+    image: postgres:latest
+    container_name: db_pm_idea
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-app-db}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-app-db}"]
+      interval: 20s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks:
+      - internal
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${REVERSE_PROXY_NETWORK:-reverse_proxy}
