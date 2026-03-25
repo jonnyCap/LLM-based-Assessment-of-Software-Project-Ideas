@@ -1,11 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from router.icl2025_router import EVALUATION_MODELS, SUMMARIZER_MODEL
+from router.icl2025_router import EVALUATION_MODELS
 from utility.DatabaseConnector import DatabaseConnector, get_db, get_models_from_db
-from utility.OllamaConnector import generate, pull, extract_json_from_response
+from utility.OllamaConnector import (
+    generate,
+    pull,
+    extract_json_from_response,
+    list_models,
+    ensure_ollama_success,
+    OllamaAPIError,
+)
 from pydantic import BaseModel
 import logging
-import json
 
 MIN_RATING = 0
 
@@ -20,12 +26,36 @@ class EvaluationRequest(BaseModel):
 router = APIRouter()
 
 
+def _dedupe_preserve_order(items: list[str]) -> list[str]:
+    seen = set()
+    deduped = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            deduped.append(item)
+    return deduped
+
+
+async def _configured_models(db: DatabaseConnector) -> list[str]:
+    db_models = await get_models_from_db(db)
+    return _dedupe_preserve_order(EVALUATION_MODELS + db_models)
+
+
+async def _selectable_models(db: DatabaseConnector) -> list[str]:
+    configured = await _configured_models(db)
+    installed = await list_models()
+    if not installed:
+        return configured
+
+    installed_set = set(installed)
+    preferred = [model for model in configured if model in installed_set]
+    extras = [model for model in installed if model not in preferred]
+    return preferred + extras
+
+
 @router.get("/models")
 async def get_available_models(db: DatabaseConnector = Depends(get_db)):
-    models = await get_models_from_db(db)
-    # Merge EVALUATION_MODELS and models into a single list
-    merged_models = EVALUATION_MODELS + models + [SUMMARIZER_MODEL]
-    return merged_models
+    return await _selectable_models(db)
 
 
 @router.post("/evaluate")
@@ -38,9 +68,12 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         if not project_idea:
             raise HTTPException(status_code=404, detail="Project idea not found")
 
-        available_models = await get_models_from_db(db)
+        available_models = await _selectable_models(db)
         if evaluation_request.model not in available_models:
-            raise HTTPException(status_code=400, detail="Invalid model")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid model '{evaluation_request.model}'. Available models: {available_models}"
+            )
 
         project_id, description = project_idea[0]["id"], project_idea[0]["description"]
 
@@ -73,14 +106,26 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                 )
 
                 response = await generate(prompt=prompt, model=evaluation_request.model)
-                if response is None:
-                    raise HTTPException(status_code=500, detail=f"Failed to evaluate {criterion}.")
                 
                 try:
-                    raw_response = response.json()
-                    logger.debug(f"Raw Ollama response for {criterion}: {raw_response}")
+                    response_data = ensure_ollama_success(
+                        response,
+                        f"generation for '{criterion}' with model '{evaluation_request.model}'"
+                    )
+                    logger.debug(f"Raw Ollama response for {criterion}: {response_data}")
 
-                    structured_data = extract_json_from_response(raw_response.get("response", "{}"))
+                    raw_response = response_data.get("response")
+                    if raw_response is None:
+                        raise OllamaAPIError(
+                            502,
+                            f"Ollama response for '{criterion}' is missing the 'response' field."
+                        )
+
+                    structured_data = (
+                        raw_response
+                        if isinstance(raw_response, dict)
+                        else extract_json_from_response(str(raw_response))
+                    )
 
                     if criterion not in structured_data:
                         raise ValueError(f"Missing '{criterion}' key in LLM output.")
@@ -89,6 +134,8 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
                         "score": int(structured_data.get(criterion, MIN_RATING)),
                         "justification": structured_data.get("justification", "No justification provided")
                     }
+                except OllamaAPIError as e:
+                    raise HTTPException(status_code=e.status_code, detail=e.detail)
                 except Exception as e:
                     logger.error(f"Failed to parse JSON for {criterion}: {e}")
                     raise HTTPException(status_code=500, detail=f"Invalid JSON format for {criterion}.")
@@ -107,13 +154,26 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
 
             
             response_feedback = await generate(prompt=prompt_feedback, model=evaluation_request.model)
-            if response_feedback is None:
-                raise HTTPException(status_code=500, detail="Failed to generate feedback.")
 
             try:
-                logger.debug(f"Raw Ollama response for feedback: {response_feedback.json()}")
-                structured_feedback = extract_json_from_response(response_feedback.json().get("response", "{}"))
+                response_data = ensure_ollama_success(
+                    response_feedback,
+                    f"feedback generation with model '{evaluation_request.model}'"
+                )
+                logger.debug(f"Raw Ollama response for feedback: {response_data}")
+
+                raw_feedback = response_data.get("response")
+                if raw_feedback is None:
+                    raise OllamaAPIError(502, "Ollama feedback response is missing the 'response' field.")
+
+                structured_feedback = (
+                    raw_feedback
+                    if isinstance(raw_feedback, dict)
+                    else extract_json_from_response(str(raw_feedback))
+                )
                 feedback = structured_feedback.get("feedback", "No feedback provided")
+            except OllamaAPIError as e:
+                raise HTTPException(status_code=e.status_code, detail=e.detail)
             except Exception as e:
                 logger.error(f"Failed to parse JSON for feedback: {e}")
                 raise HTTPException(status_code=500, detail="Invalid JSON format for feedback.")
@@ -150,20 +210,25 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
             )
 
             response = await generate(prompt=prompt, model=evaluation_request.model)
-            if response is None:
-                return HTTPException(status_code=500, detail="An error occurred while interacting with LLMs.")
-
-            logger.debug(f"Raw Ollama response: {response.text}")
-            response_data = response.json()
 
             try:
-                raw_response = response_data["response"]
+                response_data = ensure_ollama_success(
+                    response,
+                    f"evaluation generation with model '{evaluation_request.model}'"
+                )
+                logger.debug(f"Raw Ollama response: {response_data}")
+
+                raw_response = response_data.get("response")
+                if raw_response is None:
+                    raise OllamaAPIError(502, "Ollama response is missing the 'response' field.")
     
                 if isinstance(raw_response, dict):
                     structured_data = raw_response
                 else:
-                    structured_data = extract_json_from_response(raw_response)
+                    structured_data = extract_json_from_response(str(raw_response))
 
+            except OllamaAPIError as e:
+                raise HTTPException(status_code=e.status_code, detail=e.detail)
             except Exception as e:
                 logger.error(f"Failed to parse JSON from response: {e}")
                 raise HTTPException(status_code=500, detail="Invalid JSON format in Ollama response.")
@@ -184,6 +249,8 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
         )
         
         return JSONResponse(content={"message": "Evaluation added successfully"}, status_code=200)
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Failed to evaluate project idea: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -193,26 +260,24 @@ async def evaluate(evaluation_request: EvaluationRequest, db: DatabaseConnector 
 @router.post("/pull")
 async def pull_model(model: str, db: DatabaseConnector = Depends(get_db)):
     try:
-        # Send request to pull the model
         response = await pull(model)
-        if response is None:
-            return HTTPException(status_code=500, detail="An error occured while pulling the model.")
+        ensure_ollama_success(response, f"model pull for '{model}'")
 
-        if response.status_code == 200:
-            # Check if model already exists in ENUM
-            existing_models_query = "SELECT unnest(enum_range(NULL::model_enum)) AS model_name"
-            existing_models = await db.fetch(existing_models_query)
-            existing_models = {model_row["model_name"] for model_row in existing_models}
+        # Check if model already exists in ENUM
+        existing_models_query = "SELECT unnest(enum_range(NULL::model_enum)) AS model_name"
+        existing_models = await db.fetch(existing_models_query)
+        existing_models = {model_row["model_name"] for model_row in existing_models}
 
-            if model not in existing_models:
-                # Add new model to ENUM (ALTER TYPE)
-                alter_enum_query = f"ALTER TYPE model_enum ADD VALUE '{model}'"
-                await db.execute(alter_enum_query)
+        if model not in existing_models:
+            # Add new model to ENUM (ALTER TYPE)
+            alter_enum_query = f"ALTER TYPE model_enum ADD VALUE '{model}'"
+            await db.execute(alter_enum_query)
 
-            return JSONResponse(content={"message": f"Model '{model}' pulled and added to ENUM."}, status_code=200)
-        else:
-            raise HTTPException(status_code=400, detail="Failed to pull model from API")
+        return JSONResponse(content={"message": f"Model '{model}' pulled and added to ENUM."}, status_code=200)
 
+    except OllamaAPIError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-

@@ -1,10 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from utility.DatabaseConnector import DatabaseConnector, get_db, store_evaluation
-from utility.OllamaConnector import generate, extract_json_from_response
+from utility.OllamaConnector import (
+    generate,
+    extract_json_from_response,
+    ensure_ollama_success,
+    OllamaAPIError,
+    list_models,
+)
 from utility.EvaluationSummarizer import LLMEvaluation
 from pydantic import BaseModel
-from openai import OpenAI
 from datetime import datetime
 from typing import List
 import asyncio
@@ -13,10 +18,7 @@ import os
 
 router = APIRouter()
 
-API_KEY = os.getenv("API_KEY")
 ASYNC_REQUEST = os.getenv("ASYNC_REQUEST", "false").lower() == "true"
-TEMPERATURE = float(os.getenv("TEMPERATURE", 0.7))
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", 2048))
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", 2))
 
 MIN_RATING = 0
@@ -32,14 +34,38 @@ class ICLEvaluationResponse(BaseModel):
     evaluations: List[LLMEvaluation]
 
 
-EVALUATION_MODELS = ['mistral', 'mistral:7b-instruct', 'llama3.2:3b-instruct-fp16', 'deepseek-r1:8b',]
-SUMMARIZER_MODEL = 'Meta-Llama-3-70B-Instruct'
+EVALUATION_MODELS = [
+    "qwen2.5:32b",
+    "mistral-small3.2:24b",
+    "gemma3:27b",
+    "llama3.1:8b",
+]
+SUMMARIZER_MODEL = "gpt-oss:120b"
+
+
+def _resolve_model_to_installed_variant(model: str, installed_models: list[str]) -> str | None:
+    if model in installed_models:
+        return model
+
+    prefix = model.split(":", 1)[0]
+    family_matches = [installed for installed in installed_models if installed.startswith(f"{prefix}:")]
+    if family_matches:
+        return family_matches[0]
+
+    return None
+
+
+def _dedupe_preserve_order(items: list[str]) -> list[str]:
+    seen = set()
+    deduped = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            deduped.append(item)
+    return deduped
 
 @router.post("/quick_eval")
 async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnector = Depends(get_db)):
-    if not API_KEY:
-        raise HTTPException(status_code=500, detail="API key not set")
-
     project_idea = await db.fetch(
         "SELECT id, description FROM project_descriptions WHERE id = $1",
         evaluation_request.id
@@ -48,6 +74,21 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
         raise HTTPException(status_code=404, detail="Project idea not found")
 
     project_id, description = project_idea[0]["id"], project_idea[0]["description"]
+    installed_models = await list_models()
+    if installed_models:
+        resolved_models = []
+        for configured_model in EVALUATION_MODELS:
+            resolved_model = _resolve_model_to_installed_variant(configured_model, installed_models)
+            if resolved_model:
+                resolved_models.append(resolved_model)
+        active_models = _dedupe_preserve_order(resolved_models)
+        if not active_models:
+            raise HTTPException(
+                status_code=400,
+                detail=f"No configured quick-eval model is installed on Ollama. Installed models: {installed_models}"
+            )
+    else:
+        active_models = EVALUATION_MODELS
 
     async def evaluate_model(model: str):
         logger.debug(f"Evaluating with model: {model}")
@@ -84,14 +125,15 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
         for attempt in range(1, MAX_RETRIES + 1):
             try:
                 response = await generate(prompt=prompt, model=model)
-                if response is None:
-                    raise ValueError("No response from model.")
+                response_data = ensure_ollama_success(response, f"generation with model '{model}'")
+                logger.debug(f"Raw Ollama response for model {model}: {response_data}")
+                raw_response = response_data.get("response")
+                if raw_response is None:
+                    raise OllamaAPIError(502, f"Ollama response for model '{model}' is missing the 'response' field.")
 
-                logger.debug(f"Raw Ollama response for model {model}: {response.text}")
-                response_data = response.json()
-                raw_response = response_data["response"]
-
-                structured_data = raw_response if isinstance(raw_response, dict) else extract_json_from_response(raw_response)
+                structured_data = (
+                    raw_response if isinstance(raw_response, dict) else extract_json_from_response(str(raw_response))
+                )
 
                 # Append necessary data
                 structured_data["id"] = 0
@@ -103,6 +145,14 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
                 evaluation = LLMEvaluation(**structured_data)
                 return evaluation
 
+            except OllamaAPIError as e:
+                logger.warning(f"Attempt {attempt} for model {model} failed: {e.detail}")
+                if e.status_code == 404:
+                    raise HTTPException(status_code=404, detail=e.detail)
+                if attempt < MAX_RETRIES:
+                    await asyncio.sleep(2 ** (attempt - 1))
+                else:
+                    raise HTTPException(status_code=e.status_code, detail=e.detail)
             except Exception as e:
                 logger.warning(f"Attempt {attempt} for model {model} failed: {e}")
                 if attempt < MAX_RETRIES:
@@ -112,10 +162,10 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
 
     # Concurrent or sequential execution
     if ASYNC_REQUEST:
-        evaluations: List[LLMEvaluation] = await asyncio.gather(*[evaluate_model(model) for model in EVALUATION_MODELS])
+        evaluations: List[LLMEvaluation] = await asyncio.gather(*[evaluate_model(model) for model in active_models])
     else:
         evaluations: List[LLMEvaluation] = []
-        for model in EVALUATION_MODELS:
+        for model in active_models:
             result = await evaluate_model(model)
             evaluations.append(result)
 
@@ -126,9 +176,14 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
         await store_evaluation(db, project_id, evaluation)
 
     # --- Summarize results ---
-    client = OpenAI(api_key=API_KEY, base_url="https://api.hyperbolic.xyz/v1")
+    summarizer_model = _resolve_model_to_installed_variant(SUMMARIZER_MODEL, installed_models) if installed_models else SUMMARIZER_MODEL
+    if summarizer_model is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Summarizer model '{SUMMARIZER_MODEL}' is not installed on Ollama. Installed models: {installed_models}"
+        )
 
-    system_prompt = (
+    summarizer_prompt = (
             f"You received mutliple evaluations of a project idea from tutors in a first-year university-level software project management course. For your information: The project idea is a text usually consisting of a few sentences, and it is the starting point in a first-year university-level software project management course. Each evaluation includes numerical ratings, justifications for those ratings and a general feedback. \n\n"
             f"This is the project idea that has to be evaluated:\n"
             f"{description}\n\n"
@@ -155,30 +210,31 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
             f'    "completeness": <integer (0-10)>,\n'
             f'    "completeness_justification": <max 1 short yet grammatically correct sentenc with 6-12 words (string with concise justification for usefulness evaluation)>,\n'
             f'    "feedback": "<max 1-2 short yet grammatically correct sentences (string with a concise evaluation summary, highlighting strengths, weaknesses, and key recommendations)>"\n'
-            f"}}\n")
-
-    user_prompt = f"Here are the evaluations:\n{evaluations}\n"
+            f"}}\n"
+            f"\nHere are the evaluations:\n{evaluations}\n")
 
     evaluation = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            chat_completion = client.chat.completions.create(
-                model="meta-llama/Meta-Llama-3-70B-Instruct",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=TEMPERATURE,
-                max_tokens=MAX_TOKENS,
-            )
+            response = await generate(prompt=summarizer_prompt, model=summarizer_model)
+            response_data = ensure_ollama_success(response, f"summarization with model '{summarizer_model}'")
+            raw_response = response_data.get("response")
+            if raw_response is None:
+                raise OllamaAPIError(
+                    502,
+                    f"Ollama response for summarization model '{summarizer_model}' is missing the 'response' field."
+                )
 
-            text_response = chat_completion.choices[0].message.content.strip()
-            structured_data = extract_json_from_response(text_response)
+            structured_data = (
+                raw_response
+                if isinstance(raw_response, dict)
+                else extract_json_from_response(str(raw_response))
+            )
 
             # Append necessary data
             structured_data["id"] = 0
             structured_data["project_id"] = project_id
-            structured_data["model"] = SUMMARIZER_MODEL
+            structured_data["model"] = summarizer_model
             structured_data["created_at"] = datetime.now()
             structured_data["advanced_prompt"] = False
 
@@ -188,6 +244,14 @@ async def evaluate(evaluation_request: ICLEvaluationRequest, db: DatabaseConnect
             await store_evaluation(db, project_id, evaluation)
 
             break
+        except OllamaAPIError as e:
+            logger.warning(f"Attempt {attempt} for summarization failed: {e.detail}")
+            if e.status_code == 404:
+                raise HTTPException(status_code=404, detail=e.detail)
+            if attempt < MAX_RETRIES:
+                await asyncio.sleep(2 ** (attempt - 1))
+            else:
+                raise HTTPException(status_code=e.status_code, detail=e.detail)
         except Exception as e:
             logger.warning(f"Attempt {attempt} for summarization failed: {e}")
             if attempt < MAX_RETRIES:

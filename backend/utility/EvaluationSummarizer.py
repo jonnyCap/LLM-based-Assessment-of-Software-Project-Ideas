@@ -1,4 +1,9 @@
-from utility.OllamaConnector import generate, extract_json_from_response
+from utility.OllamaConnector import (
+    generate,
+    extract_json_from_response,
+    ensure_ollama_success,
+    OllamaAPIError,
+)
 from typing import List, DefaultDict
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -78,14 +83,18 @@ async def summarize_feedback(feedback: str, model: str):
         "Please provide a concise and well-structured summary of this feedback that captures the key points."
     )
 
-    response = await generate(prompt=prompt, model=model)
-
-    logger.info(f"LLM Feedback Summary response: {response.json()}")
-    
-    if response and response.status_code == 200:
-        return response.json().get("response", "Summarization failed.")
-    
-    return "Summarization failed due to an error."
+    try:
+        response = await generate(prompt=prompt, model=model)
+        response_data = ensure_ollama_success(response, f"feedback summarization with model '{model}'")
+        logger.info(f"LLM Feedback Summary response: {response_data}")
+        response_text = response_data.get("response", "Summarization failed.")
+        return response_text if isinstance(response_text, str) else str(response_text)
+    except OllamaAPIError as e:
+        logger.error(f"Summarization failed due to an Ollama error: {e.detail}")
+        return f"Summarization failed: {e.detail}"
+    except Exception as e:
+        logger.error(f"Summarization failed due to an unexpected error: {e}")
+        return "Summarization failed due to an error."
 
 
 async def summarize_evaluations(evaluations: List[Evaluation], model: str):
@@ -134,35 +143,31 @@ async def summarize_evaluations(evaluations: List[Evaluation], model: str):
     )
 
     # Call the LLM to generate the summary and reevaluation
-    response = await generate(prompt=prompt, model=model)
+    try:
+        response = await generate(prompt=prompt, model=model)
+        response_json = ensure_ollama_success(response, f"evaluation summarization with model '{model}'")
+        if "response" not in response_json:
+            raise ValueError("Missing 'response' key in LLM output.")
 
-    if response and response.status_code == 200:
-        try:
-            response_json = response.json()
-            if "response" not in response_json:
-                raise ValueError("Missing 'response' key in LLM output.")
-    
-            llm_data = extract_json_from_response(response_json.get("response", {}))  # Parse the JSON string from LLM
-    
-            # Ensure all required keys are present, otherwise default to None
-            return AverageEvaluation(
-                num_evaluations=len(evaluations),
-                novelty=llm_data.get("novelty"),
-                usefulness=llm_data.get("usefulness"),
-                market_potential=llm_data.get("market_potential"),
-                applicability=llm_data.get("applicability"),
-                complexity=llm_data.get("complexity"),
-                completeness=llm_data.get("completeness"),
-                feedback=llm_data.get("feedback", "Summarization failed.")
-            )
+        llm_data = extract_json_from_response(str(response_json.get("response", {})))
 
-        except json.JSONDecodeError:
-            logger.error("LLM response is not a valid JSON object.")
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return None
-
-    logger.error("Summarization failed due to an error.")
-    return None
-
+        # Ensure all required keys are present, otherwise default to None
+        return AverageEvaluation(
+            num_evaluations=len(evaluations),
+            novelty=llm_data.get("novelty"),
+            usefulness=llm_data.get("usefulness"),
+            market_potential=llm_data.get("market_potential"),
+            applicability=llm_data.get("applicability"),
+            complexity=llm_data.get("complexity"),
+            completeness=llm_data.get("completeness"),
+            feedback=llm_data.get("feedback", "Summarization failed.")
+        )
+    except OllamaAPIError as e:
+        logger.error(f"Summarization failed due to an Ollama error: {e.detail}")
+        return None
+    except json.JSONDecodeError:
+        logger.error("LLM response is not a valid JSON object.")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return None
